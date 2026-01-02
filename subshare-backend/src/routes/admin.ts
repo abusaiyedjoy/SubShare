@@ -1,14 +1,29 @@
 import { Hono } from 'hono';
-import { db, topupRequests, users, transactions, sharedSubscriptions, reports, subscriptionPlatforms, platformSettings, subscriptionAccess } from '@/db';
+import { getDb, topupRequests, users, transactions, sharedSubscriptions, reports, subscriptionPlatforms, platformSettings } from '../db';
 import { eq, and, desc, sql } from 'drizzle-orm';
-import { authenticate } from '@/middleware/auth';
-import { requireAdmin } from '@/middleware/admin';
-import { validate, schemas } from '@/middleware/validator';
-import { standardRateLimiter } from '@/middleware/rateLimiter';
-import { sanitizeUser } from '@/utils/helpers';
-import { ApproveTopupRequest, RejectTopupRequest, VerifySubscriptionRequest, ResolveReportRequest, UpdateBalanceRequest } from '@/types';
+import { authenticate } from '../middleware/auth';
+import { requireAdmin } from '../middleware/admin';
+import { validate, schemas } from '../middleware/validator';
+import { standardRateLimiter } from '../middleware/rateLimiter';
+import { sanitizeUser } from '../utils/helpers';
+import { ApproveTopupRequest, RejectTopupRequest, VerifySubscriptionRequest, ResolveReportRequest, UpdateBalanceRequest } from '../types';
 
-const admin = new Hono();
+let db: any;
+interface AdminContext {
+  Variables: {
+    userId: number;
+  };
+}
+
+const admin = new Hono<AdminContext>();
+
+// Initialize database
+admin.use('*', async (c, next) => {
+  if (!db) {
+    db = getDb((c.env as any).DB);
+  }
+  await next();
+});
 
 // Apply authentication and admin authorization to all admin routes
 admin.use('*', authenticate);
@@ -246,7 +261,7 @@ admin.get('/pending-verifications', async (c) => {
       .where(eq(sharedSubscriptions.is_verified, false));
 
     // Remove credentials from response
-    const sanitized = pendingSubscriptions.map(item => ({
+    const sanitized = pendingSubscriptions.map((item: { subscription: any; }) => ({
       ...item,
       subscription: {
         ...item.subscription,

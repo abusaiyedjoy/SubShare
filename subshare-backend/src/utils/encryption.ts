@@ -1,101 +1,125 @@
-import * as crypto from 'crypto';
-import * as dotenv from 'dotenv';
 
-dotenv.config();
-
-// Encryption configuration
-const ALGORITHM = 'aes-256-cbc';
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-character-encryption-key!!';
-const IV_LENGTH = 16;
-
-/**
- * Ensure encryption key is 32 bytes
- */
-function getEncryptionKey(): Buffer {
-  const key = ENCRYPTION_KEY;
-  
-  if (key.length === 32) {
-    return Buffer.from(key);
-  }
-  
-  // Hash the key to ensure it's 32 bytes
-  return crypto.createHash('sha256').update(key).digest();
+ // Hash password using Web Crypto API
+export async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hash));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
 }
 
-/**
- * Encrypt sensitive data (like subscription credentials)
- */
-export function encrypt(text: string): string {
+// Verify password by comparing hash
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  const hashedInput = await hashPassword(password);
+  return hashedInput === hash;
+}
+
+// Get CryptoKey for encryption/decryption
+async function getEncryptionKey(key: string): Promise<CryptoKey> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(key);
+  
+  // Hash the key to ensure it's 256 bits
+  const hashBuffer = await crypto.subtle.digest('SHA-256', keyData);
+  
+  return await crypto.subtle.importKey(
+    'raw',
+    hashBuffer,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+// Encrypt text using AES-GCM
+export async function encrypt(text: string, encryptionKey: string): Promise<string> {
   try {
-    const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipheriv(ALGORITHM, getEncryptionKey(), iv);
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
     
-    let encrypted = cipher.update(text, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
+    // Generate random IV
+    const iv = crypto.getRandomValues(new Uint8Array(12));
     
-    // Return IV + encrypted data
-    return iv.toString('hex') + ':' + encrypted;
+    // Get encryption key
+    const key = await getEncryptionKey(encryptionKey);
+    
+    // Encrypt data
+    const encryptedBuffer = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      data
+    );
+    
+    // Combine IV and encrypted data
+    const encryptedArray = new Uint8Array(encryptedBuffer);
+    const result = new Uint8Array(iv.length + encryptedArray.length);
+    result.set(iv, 0);
+    result.set(encryptedArray, iv.length);
+    
+    // Convert to base64
+    return btoa(String.fromCharCode(...result));
   } catch (error) {
     console.error('Encryption error:', error);
     throw new Error('Failed to encrypt data');
   }
 }
 
-/**
- * Decrypt sensitive data
- */
-export function decrypt(encryptedText: string): string {
+// Decrypt text using AES-GCM
+export async function decrypt(encryptedText: string, encryptionKey: string): Promise<string> {
   try {
-    const parts = encryptedText.split(':');
+    // Convert from base64
+    const encryptedData = Uint8Array.from(atob(encryptedText), c => c.charCodeAt(0));
     
-    if (parts.length !== 2) {
-      throw new Error('Invalid encrypted format');
-    }
+    // Extract IV and encrypted data
+    const iv = encryptedData.slice(0, 12);
+    const data = encryptedData.slice(12);
     
-    const iv = Buffer.from(parts[0], 'hex');
-    const encrypted = parts[1];
+    // Get encryption key
+    const key = await getEncryptionKey(encryptionKey);
     
-    const decipher = crypto.createDecipheriv(ALGORITHM, getEncryptionKey(), iv);
+    // Decrypt data
+    const decryptedBuffer = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      data
+    );
     
-    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    
-    return decrypted;
+    // Convert to string
+    const decoder = new TextDecoder();
+    return decoder.decode(decryptedBuffer);
   } catch (error) {
     console.error('Decryption error:', error);
     throw new Error('Failed to decrypt data');
   }
 }
 
-/**
- * Encrypt subscription credentials
- */
-export function encryptCredentials(username: string, password: string): {
+// Encrypt subscription credentials
+export async function encryptCredentials(
+  username: string, 
+  password: string,
+  encryptionKey: string
+): Promise<{
   encrypted_username: string;
   encrypted_password: string;
-} {
+}> {
   return {
-    encrypted_username: encrypt(username),
-    encrypted_password: encrypt(password),
+    encrypted_username: await encrypt(username, encryptionKey),
+    encrypted_password: await encrypt(password, encryptionKey),
   };
 }
 
-/**
- * Decrypt subscription credentials
- */
-export function decryptCredentials(encrypted_username: string, encrypted_password: string): {
+// Decrypt subscription credentials
+export async function decryptCredentials(
+  encrypted_username: string, 
+  encrypted_password: string,
+  encryptionKey: string
+): Promise<{
   username: string;
   password: string;
-} {
+}> {
   return {
-    username: decrypt(encrypted_username),
-    password: decrypt(encrypted_password),
+    username: await decrypt(encrypted_username, encryptionKey),
+    password: await decrypt(encrypted_password, encryptionKey),
   };
-}
-
-/**
- * Hash password using bcrypt-compatible method
- */
-export function hashData(data: string): string {
-  return crypto.createHash('sha256').update(data).digest('hex');
 }

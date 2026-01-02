@@ -1,7 +1,5 @@
 import { Context, Next } from 'hono';
 
-// In-memory store for rate limiting
-// For production, use Redis or similar distributed cache
 interface RateLimitStore {
   [key: string]: {
     count: number;
@@ -11,9 +9,7 @@ interface RateLimitStore {
 
 const rateLimitStore: RateLimitStore = {};
 
-/**
- * Clean up expired entries periodically
- */
+// Clean up expired entries periodically
 setInterval(() => {
   const now = Date.now();
   Object.keys(rateLimitStore).forEach(key => {
@@ -23,11 +19,7 @@ setInterval(() => {
   });
 }, 60000); // Clean up every minute
 
-/**
- * Rate limiter middleware
- * @param maxRequests - Maximum number of requests allowed
- * @param windowMs - Time window in milliseconds
- */
+
 export function rateLimiter(maxRequests: number = 100, windowMs: number = 60000) {
   return async (c: Context, next: Next) => {
     try {
@@ -73,29 +65,23 @@ export function rateLimiter(maxRequests: number = 100, windowMs: number = 60000)
       await next();
     } catch (error) {
       console.error('Rate limiter error:', error);
-      // Continue on error to not block requests
       await next();
     }
   };
 }
 
-/**
- * Strict rate limiter for sensitive endpoints (login, register)
- */
+
+ // rate limiter for sensitive endpoints (login, register)10 requests per minute
 export function strictRateLimiter() {
-  return rateLimiter(10, 60000); // 10 requests per minute
+  return rateLimiter(10, 60000); 
 }
 
-/**
- * Standard rate limiter for general API endpoints
- */
+// Standard rate limiter for regular endpoints 100 requests per minute
 export function standardRateLimiter() {
-  return rateLimiter(100, 60000); // 100 requests per minute
+  return rateLimiter(100, 60000); 
 }
 
-/**
- * Lenient rate limiter for public endpoints
- */
+// Lenient rate limiter for less sensitive endpoints 200 requests per minute
 export function lenientRateLimiter() {
-  return rateLimiter(200, 60000); // 200 requests per minute
+  return rateLimiter(200, 60000); 
 }

@@ -2,32 +2,45 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { prettyJSON } from 'hono/pretty-json';
-import { initializeDatabase } from './db';
-import * as dotenv from 'dotenv';
-import { serve } from '@hono/node-server';
-
-// import authRoutes from './routes/auth';
+import { getDb, initializeDatabase } from './db';
+import type { D1Database } from '@cloudflare/workers-types';
+import authRoutes from './routes/auth';
 // import userRoutes from './routes/users';
 // import platformRoutes from './routes/platforms';
 // import subscriptionRoutes from './routes/subscriptions';
 // import walletRoutes from './routes/wallet';
-// import adminRoutes from './routes/admin';
+import adminRoutes from './routes/admin';
 
-dotenv.config();
+type Bindings = {
+  DB: D1Database;
+  JWT_SECRET: string;
+  ENCRYPTION_KEY: string;
+};
 
-const app = new Hono();
+type Variables = {
+  db: any;
+};
+
+const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
 // Middleware
 app.use('*', logger());
 app.use('*', prettyJSON());
 app.use('*', cors({
-  origin: ['http://localhost:3000', 'https://subshare.vercel.app'],
+  origin: ['http://localhost:3000', 'https://subshare.com'],
   credentials: true,
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Health check
+// Middleware to attach DB to context
+app.use('*', async (c, next) => {
+  const db = getDb(c.env.DB);
+  c.set('db', db);
+  await next();
+});
+
+// Health check endpoint
 app.get('/health', (c) => {
   return c.json({
     success: true,
@@ -36,13 +49,27 @@ app.get('/health', (c) => {
   });
 });
 
+let isInitialized = false;
+app.use('*', async (c, next) => {
+  if (!isInitialized) {
+    try {
+      const db = c.get('db');
+      await initializeDatabase(db);
+      isInitialized = true;
+    } catch (error) {
+      console.error('Database initialization error:', error);
+    }
+  }
+  await next();
+});
+
 // API Routes
-// app.route('/api/auth', authRoutes);
+app.route('/api/auth', authRoutes);
 // app.route('/api/users', userRoutes);
 // app.route('/api/platforms', platformRoutes);
 // app.route('/api/subscriptions', subscriptionRoutes);
 // app.route('/api/wallet', walletRoutes);
-// app.route('/api/admin', adminRoutes);
+app.route('/api/admin', adminRoutes);
 
 // 404 handler
 app.notFound((c) => {
@@ -56,31 +83,11 @@ app.notFound((c) => {
 // Error handler
 app.onError((err, c) => {
   console.error('Error:', err);
-
+  
   return c.json({
     success: false,
     error: err.message || 'Internal server error',
   }, 500);
 });
 
-// Initialize database on startup
-initializeDatabase().catch(console.error);
-
-// Node.js local development
-if (process.env.NODE_ENV !== 'production') {
-  const port = parseInt(process.env.PORT || '8787');
-
-  console.log(`🚀 SubShare API starting on port ${port}...`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-
-  serve({
-    fetch: app.fetch,
-    port,
-  }, (info: { port: number; }) => {
-    console.log(`✅ Server is running on http://localhost:${info.port}`);
-    console.log(`📚 API Documentation: http://localhost:${info.port}/health`);
-  });
-}
-
-// Export for Cloudflare Workers
 export default app;

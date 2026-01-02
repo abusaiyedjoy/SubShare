@@ -1,16 +1,16 @@
-import { db, platformSettings } from '@/db';
-import { eq } from 'drizzle-orm';
 
-/**
- * Get admin commission percentage from settings
- */
-export async function getCommissionPercentage(): Promise<number> {
+import { eq } from 'drizzle-orm';
+import { platformSettings } from '../db';
+
+// Get admin commission percentage from settings
+export async function getCommissionPercentage(db: any): Promise<number> {
   try {
     const setting = await db
       .select()
       .from(platformSettings)
       .where(eq(platformSettings.key, 'admin_commission_percentage'))
-      .limit(1);
+      .limit(1)
+      .all();
 
     if (setting.length > 0) {
       return parseFloat(setting[0].value);
@@ -24,9 +24,7 @@ export async function getCommissionPercentage(): Promise<number> {
   }
 }
 
-/**
- * Calculate admin commission and owner earning
- */
+// Calculate admin commission and owner earning
 export function calculateCommission(
   totalAmount: number,
   commissionPercentage: number
@@ -46,9 +44,7 @@ export function calculateCommission(
   };
 }
 
-/**
- * Calculate subscription access price based on hours
- */
+// Calculate subscription access price based on hours
 export function calculateAccessPrice(pricePerHour: number, hours: number): number {
   // Convert hours to days (minimum 1 day = 24 hours)
   const days = Math.ceil(hours / 24);
@@ -57,25 +53,22 @@ export function calculateAccessPrice(pricePerHour: number, hours: number): numbe
   return Math.round(pricePerDay * days * 100) / 100;
 }
 
-/**
- * Calculate access end time based on hours
- */
+// Calculate access end time based on hours
 export function calculateAccessEndTime(startTime: Date, hours: number): Date {
   const endTime = new Date(startTime);
   endTime.setHours(endTime.getHours() + hours);
   return endTime;
 }
 
-/**
- * Get minimum subscription hours from settings
- */
-export async function getMinimumSubscriptionHours(): Promise<number> {
+// Get minimum subscription hours from settings
+export async function getMinimumSubscriptionHours(db: any): Promise<number> {
   try {
     const setting = await db
       .select()
       .from(platformSettings)
       .where(eq(platformSettings.key, 'minimum_subscription_hours'))
-      .limit(1);
+      .limit(1)
+      .all();
 
     if (setting.length > 0) {
       return parseInt(setting[0].value);
@@ -88,15 +81,13 @@ export async function getMinimumSubscriptionHours(): Promise<number> {
   }
 }
 
-/**
- * Validate subscription hours
- */
-export async function validateSubscriptionHours(hours: number): Promise<{
+// Validate subscription hours against minimum
+export async function validateSubscriptionHours(db: any, hours: number): Promise<{
   valid: boolean;
   error?: string;
   minimumHours?: number;
 }> {
-  const minimumHours = await getMinimumSubscriptionHours();
+  const minimumHours = await getMinimumSubscriptionHours(db);
 
   if (hours < minimumHours) {
     return {
@@ -112,34 +103,7 @@ export async function validateSubscriptionHours(hours: number): Promise<{
   };
 }
 
-/**
- * Format price for display
- */
+// Format price with currency
 export function formatPrice(amount: number, currency: string = 'BDT'): string {
   return `${currency} ${amount.toFixed(2)}`;
-}
-
-/**
- * Calculate total earnings for a subscription owner
- */
-export async function calculateOwnerTotalEarnings(
-  subscriptionId: number
-): Promise<number> {
-  try {
-    const { transactions } = await import('@/db');
-    
-    const earnings = await db
-      .select()
-      .from(transactions)
-      .where(eq(transactions.transaction_type, 'earning'));
-
-    const total = earnings.reduce((sum, transaction) => {
-      return sum + transaction.amount;
-    }, 0);
-
-    return Math.round(total * 100) / 100;
-  } catch (error) {
-    console.error('Error calculating owner earnings:', error);
-    return 0;
-  }
 }

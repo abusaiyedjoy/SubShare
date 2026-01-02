@@ -1,14 +1,17 @@
 {
   "name": "subshare-backend",
-  "type": "module",
+  "version": "1.0.0",
+  "description": "SubShare backend API with Hono and Cloudflare D1",
+  "main": "src/index.ts",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy --minify",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create subshare",
+    "db:migrate": "wrangler d1 migrations apply subshare --local",
+    "db:migrate:prod": "wrangler d1 migrations apply subshare",
     "db:generate": "drizzle-kit generate:sqlite",
-    "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.7",

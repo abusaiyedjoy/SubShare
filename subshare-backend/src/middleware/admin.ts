@@ -1,10 +1,7 @@
 import { Context, Next } from 'hono';
-import { UserResponse } from '@/types';
+import { UserResponse } from '../types';
 
-/**
- * Admin authorization middleware - checks if user has admin role
- * Must be used after authenticate middleware
- */
+
 export async function requireAdmin(c: Context, next: Next) {
   try {
     const user = c.get('user') as UserResponse | undefined;
@@ -42,17 +39,13 @@ export async function requireAdmin(c: Context, next: Next) {
   }
 }
 
-/**
- * Check if current user is admin (doesn't block request)
- */
+
 export function isAdmin(c: Context): boolean {
   const user = c.get('user') as UserResponse | undefined;
   return user?.role === 'admin';
 }
 
-/**
- * Get admin user or throw error
- */
+
 export function requireAdminUser(c: Context): UserResponse {
   const user = c.get('user') as UserResponse | undefined;
   

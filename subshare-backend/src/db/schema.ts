@@ -168,3 +168,7 @@ export const platformSettings = sqliteTable('platform_settings', {
     .notNull()
     .default(sql`(unixepoch())`),
 });
+export function eq(email: SQLiteColumn<{ name: "email"; tableName: "users"; dataType: "string"; columnType: "SQLiteText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; hasRuntimeDefault: false; enumValues: [string, ...string[]]; baseColumn: never; identity: undefined; generated: undefined; }, {}, { length: number | undefined; }>, adminEmail: string): any {
+  throw new Error('Function not implemented.');
+}
+

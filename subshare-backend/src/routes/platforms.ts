@@ -1,249 +1,254 @@
-import { Hono } from 'hono';
-import { db, subscriptionPlatforms } from '@/db';
-import { eq, and, desc } from 'drizzle-orm';
-import { authenticate, optionalAuth } from '@/middleware/auth';
-import { requireAdmin } from '@/middleware/admin';
-import { validate, schemas } from '@/middleware/validator';
-import { standardRateLimiter, lenientRateLimiter } from '@/middleware/rateLimiter';
-import { CreatePlatformRequest } from '@/types';
+// import { Hono } from 'hono';
+// import { subscriptionPlatforms, db } from '../db';
+// import { eq, and, desc } from 'drizzle-orm';
+// import { authenticate, optionalAuth } from '../middleware/auth';
+// import { requireAdmin } from '../middleware/admin';
+// import { validate, schemas } from '../middleware/validator';
+// import { standardRateLimiter, lenientRateLimiter } from '../middleware/rateLimiter';
+// import { CreatePlatformRequest } from '../types';
 
-const platforms = new Hono();
+// interface HonoContext {
+//   userRole?: string;
+//   userId?: number;
+// }
 
-/**
- * GET /api/platforms
- * Get all subscription platforms (public)
- */
-platforms.get('/', lenientRateLimiter(), optionalAuth, async (c) => {
-  try {
-    const showAll = c.req.query('all') === 'true';
-    const userRole = c.get('userRole');
+// const platforms = new Hono<{ Variables: HonoContext }>();
 
-    let platformList;
+// /**
+//  * GET /api/platforms
+//  * Get all subscription platforms (public)
+//  */
+// platforms.get('/', lenientRateLimiter(), optionalAuth, async (c) => {
+//   try {
+//     const showAll = c.req.query('all') === 'true';
+//     const userRole = c.get('userRole');
 
-    if (showAll && userRole === 'admin') {
-      // Admin can see all platforms including inactive ones
-      platformList = await db
-        .select()
-        .from(subscriptionPlatforms)
-        .orderBy(desc(subscriptionPlatforms.created_at));
-    } else {
-      // Regular users only see active platforms
-      platformList = await db
-        .select()
-        .from(subscriptionPlatforms)
-        .where(and(
-          eq(subscriptionPlatforms.is_active, true),
-          eq(subscriptionPlatforms.status, true)
-        ))
-        .orderBy(desc(subscriptionPlatforms.created_at));
-    }
+//     let platformList;
 
-    return c.json({
-      success: true,
-      data: platformList,
-    });
-  } catch (error) {
-    console.error('Get platforms error:', error);
-    return c.json({
-      success: false,
-      error: 'Failed to fetch platforms',
-    }, 500);
-  }
-});
+//     if (showAll && userRole === 'admin') {
+//       // Admin can see all platforms including inactive ones
+//       platformList = await db
+//         .select()
+//         .from(subscriptionPlatforms)
+//         .orderBy(desc(subscriptionPlatforms.created_at));
+//     } else {
+//       // Regular users only see active platforms
+//       platformList = await db
+//         .select()
+//         .from(subscriptionPlatforms)
+//         .where(and(
+//           eq(subscriptionPlatforms.is_active, true),
+//           eq(subscriptionPlatforms.status, true)
+//         ))
+//         .orderBy(desc(subscriptionPlatforms.created_at));
+//     }
 
-/**
- * POST /api/platforms
- * Create new platform (admin only)
- */
-platforms.post(
-  '/',
-  authenticate,
-  requireAdmin,
-  standardRateLimiter(),
-  validate(schemas.createPlatform),
-  async (c) => {
-    try {
-      const userId = c.get('userId') as number;
-      const { name, logo_url } = await c.req.json() as CreatePlatformRequest;
+//     return c.json({
+//       success: true,
+//       data: platformList,
+//     });
+//   } catch (error) {
+//     console.error('Get platforms error:', error);
+//     return c.json({
+//       success: false,
+//       error: 'Failed to fetch platforms',
+//     }, 500);
+//   }
+// });
 
-      // Check if platform already exists
-      const existing = await db
-        .select()
-        .from(subscriptionPlatforms)
-        .where(eq(subscriptionPlatforms.name, name.trim()))
-        .limit(1);
+// /**
+//  * POST /api/platforms
+//  * Create new platform (admin only)
+//  */
+// platforms.post(
+//   '/',
+//   authenticate,
+//   requireAdmin,
+//   standardRateLimiter(),
+//   validate(schemas.createPlatform),
+//   async (c) => {
+//     try {
+//       const userId = c.get('userId') as number;
+//       const { name, logo_url } = await c.req.json() as CreatePlatformRequest;
 
-      if (existing.length > 0) {
-        return c.json({
-          success: false,
-          error: 'Platform with this name already exists',
-        }, 409);
-      }
+//       // Check if platform already exists
+//       const existing = await db
+//         .select()
+//         .from(subscriptionPlatforms)
+//         .where(eq(subscriptionPlatforms.name, name.trim()))
+//         .limit(1);
 
-      // Create platform
-      const newPlatform = await db
-        .insert(subscriptionPlatforms)
-        .values({
-          name: name.trim(),
-          logo_url: logo_url || null,
-          is_active: true,
-          status: true,
-          created_by: userId,
-        })
-        .returning();
+//       if (existing.length > 0) {
+//         return c.json({
+//           success: false,
+//           error: 'Platform with this name already exists',
+//         }, 409);
+//       }
 
-      return c.json({
-        success: true,
-        data: newPlatform[0],
-        message: 'Platform created successfully',
-      }, 201);
-    } catch (error) {
-      console.error('Create platform error:', error);
-      return c.json({
-        success: false,
-        error: 'Failed to create platform',
-      }, 500);
-    }
-  }
-);
+//       // Create platform
+//       const newPlatform = await db
+//         .insert(subscriptionPlatforms)
+//         .values({
+//           name: name.trim(),
+//           logo_url: logo_url || null,
+//           is_active: true,
+//           status: true,
+//           created_by: userId,
+//         })
+//         .returning();
 
-/**
- * PUT /api/platforms/:id
- * Update platform (admin only)
- */
-platforms.put(
-  '/:id',
-  authenticate,
-  requireAdmin,
-  standardRateLimiter(),
-  async (c) => {
-    try {
-      const platformId = parseInt(c.req.param('id'));
-      const { name, logo_url, is_active, status } = await c.req.json();
+//       return c.json({
+//         success: true,
+//         data: newPlatform[0],
+//         message: 'Platform created successfully',
+//       }, 201);
+//     } catch (error) {
+//       console.error('Create platform error:', error);
+//       return c.json({
+//         success: false,
+//         error: 'Failed to create platform',
+//       }, 500);
+//     }
+//   }
+// );
 
-      if (isNaN(platformId)) {
-        return c.json({
-          success: false,
-          error: 'Invalid platform ID',
-        }, 400);
-      }
+// /**
+//  * PUT /api/platforms/:id
+//  * Update platform (admin only)
+//  */
+// platforms.put(
+//   '/:id',
+//   authenticate,
+//   requireAdmin,
+//   standardRateLimiter(),
+//   async (c) => {
+//     try {
+//       const platformId = parseInt(c.req.param('id'));
+//       const { name, logo_url, is_active, status } = await c.req.json();
 
-      // Check if platform exists
-      const existing = await db
-        .select()
-        .from(subscriptionPlatforms)
-        .where(eq(subscriptionPlatforms.id, platformId))
-        .limit(1);
+//       if (isNaN(platformId)) {
+//         return c.json({
+//           success: false,
+//           error: 'Invalid platform ID',
+//         }, 400);
+//       }
 
-      if (existing.length === 0) {
-        return c.json({
-          success: false,
-          error: 'Platform not found',
-        }, 404);
-      }
+//       // Check if platform exists
+//       const existing = await db
+//         .select()
+//         .from(subscriptionPlatforms)
+//         .where(eq(subscriptionPlatforms.id, platformId))
+//         .limit(1);
 
-      // Build update data
-      const updateData: any = {};
-      
-      if (name !== undefined) {
-        updateData.name = name.trim();
-      }
-      if (logo_url !== undefined) {
-        updateData.logo_url = logo_url;
-      }
-      if (is_active !== undefined) {
-        updateData.is_active = is_active;
-      }
-      if (status !== undefined) {
-        updateData.status = status;
-      }
+//       if (existing.length === 0) {
+//         return c.json({
+//           success: false,
+//           error: 'Platform not found',
+//         }, 404);
+//       }
 
-      if (Object.keys(updateData).length === 0) {
-        return c.json({
-          success: false,
-          error: 'No valid fields to update',
-        }, 400);
-      }
+//       // Build update data
+//       const updateData: any = {};
 
-      // Update platform
-      const updated = await db
-        .update(subscriptionPlatforms)
-        .set(updateData)
-        .where(eq(subscriptionPlatforms.id, platformId))
-        .returning();
+//       if (name !== undefined) {
+//         updateData.name = name.trim();
+//       }
+//       if (logo_url !== undefined) {
+//         updateData.logo_url = logo_url;
+//       }
+//       if (is_active !== undefined) {
+//         updateData.is_active = is_active;
+//       }
+//       if (status !== undefined) {
+//         updateData.status = status;
+//       }
 
-      return c.json({
-        success: true,
-        data: updated[0],
-        message: 'Platform updated successfully',
-      });
-    } catch (error) {
-      console.error('Update platform error:', error);
-      return c.json({
-        success: false,
-        error: 'Failed to update platform',
-      }, 500);
-    }
-  }
-);
+//       if (Object.keys(updateData).length === 0) {
+//         return c.json({
+//           success: false,
+//           error: 'No valid fields to update',
+//         }, 400);
+//       }
 
-/**
- * POST /api/platforms/:id/verify
- * Verify platform (admin only)
- */
-platforms.post(
-  '/:id/verify',
-  authenticate,
-  requireAdmin,
-  standardRateLimiter(),
-  async (c) => {
-    try {
-      const platformId = parseInt(c.req.param('id'));
+//       // Update platform
+//       const updated = await db
+//         .update(subscriptionPlatforms)
+//         .set(updateData)
+//         .where(eq(subscriptionPlatforms.id, platformId))
+//         .returning();
 
-      if (isNaN(platformId)) {
-        return c.json({
-          success: false,
-          error: 'Invalid platform ID',
-        }, 400);
-      }
+//       return c.json({
+//         success: true,
+//         data: updated[0],
+//         message: 'Platform updated successfully',
+//       });
+//     } catch (error) {
+//       console.error('Update platform error:', error);
+//       return c.json({
+//         success: false,
+//         error: 'Failed to update platform',
+//       }, 500);
+//     }
+//   }
+// );
 
-      // Check if platform exists
-      const existing = await db
-        .select()
-        .from(subscriptionPlatforms)
-        .where(eq(subscriptionPlatforms.id, platformId))
-        .limit(1);
+// /**
+//  * POST /api/platforms/:id/verify
+//  * Verify platform (admin only)
+//  */
+// platforms.post(
+//   '/:id/verify',
+//   authenticate,
+//   requireAdmin,
+//   standardRateLimiter(),
+//   async (c) => {
+//     try {
+//       const platformId = parseInt(c.req.param('id'));
 
-      if (existing.length === 0) {
-        return c.json({
-          success: false,
-          error: 'Platform not found',
-        }, 404);
-      }
+//       if (isNaN(platformId)) {
+//         return c.json({
+//           success: false,
+//           error: 'Invalid platform ID',
+//         }, 400);
+//       }
 
-      // Verify platform
-      const verified = await db
-        .update(subscriptionPlatforms)
-        .set({
-          is_active: true,
-          status: true,
-        })
-        .where(eq(subscriptionPlatforms.id, platformId))
-        .returning();
+//       // Check if platform exists
+//       const existing = await db
+//         .select()
+//         .from(subscriptionPlatforms)
+//         .where(eq(subscriptionPlatforms.id, platformId))
+//         .limit(1);
 
-      return c.json({
-        success: true,
-        data: verified[0],
-        message: 'Platform verified successfully',
-      });
-    } catch (error) {
-      console.error('Verify platform error:', error);
-      return c.json({
-        success: false,
-        error: 'Failed to verify platform',
-      }, 500);
-    }
-  }
-);
+//       if (existing.length === 0) {
+//         return c.json({
+//           success: false,
+//           error: 'Platform not found',
+//         }, 404);
+//       }
 
-export default platforms;
+//       // Verify platform
+//       const verified = await db
+//         .update(subscriptionPlatforms)
+//         .set({
+//           is_active: true,
+//           status: true,
+//         })
+//         .where(eq(subscriptionPlatforms.id, platformId))
+//         .returning();
+
+//       return c.json({
+//         success: true,
+//         data: verified[0],
+//         message: 'Platform verified successfully',
+//       });
+//     } catch (error) {
+//       console.error('Verify platform error:', error);
+//       return c.json({
+//         success: false,
+//         error: 'Failed to verify platform',
+//       }, 500);
+//     }
+//   }
+// );
+
+// export default platforms;

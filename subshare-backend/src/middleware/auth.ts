@@ -1,15 +1,14 @@
 import { Context, Next } from 'hono';
-import { verifyToken, extractTokenFromHeader } from '@/utils/jwt';
-import { db, users } from '@/db';
 import { eq } from 'drizzle-orm';
-import { sanitizeUser } from '@/utils/helpers';
+import { extractTokenFromHeader, verifyToken } from '../utils/jwt';
+import { users } from '../db';
 
-/**
- * Authentication middleware - verifies JWT token
- */
+
 export async function authenticate(c: Context, next: Next) {
   try {
-    // Extract token from Authorization header
+    const db = c.get('db');
+    const jwtSecret = c.env.JWT_SECRET;
+    
     const authHeader = c.req.header('Authorization');
     const token = extractTokenFromHeader(authHeader);
 
@@ -26,7 +25,7 @@ export async function authenticate(c: Context, next: Next) {
     // Verify token
     let decoded;
     try {
-      decoded = verifyToken(token);
+      decoded = await verifyToken(token, jwtSecret);
     } catch (error) {
       return c.json(
         {
@@ -42,7 +41,8 @@ export async function authenticate(c: Context, next: Next) {
       .select()
       .from(users)
       .where(eq(users.id, decoded.id))
-      .limit(1);
+      .limit(1)
+      .all();
 
     if (user.length === 0) {
       return c.json(
@@ -72,23 +72,25 @@ export async function authenticate(c: Context, next: Next) {
   }
 }
 
-/**
- * Optional authentication - doesn't fail if no token
- */
+
 export async function optionalAuth(c: Context, next: Next) {
   try {
+    const db = c.get('db');
+    const jwtSecret = c.env.JWT_SECRET;
+    
     const authHeader = c.req.header('Authorization');
     const token = extractTokenFromHeader(authHeader);
 
     if (token) {
       try {
-        const decoded = verifyToken(token);
+        const decoded = await verifyToken(token, jwtSecret);
         
         const user = await db
           .select()
           .from(users)
           .where(eq(users.id, decoded.id))
-          .limit(1);
+          .limit(1)
+          .all();
 
         if (user.length > 0) {
           c.set('user', sanitizeUser(user[0]));
@@ -96,7 +98,6 @@ export async function optionalAuth(c: Context, next: Next) {
           c.set('userRole', user[0].role);
         }
       } catch (error) {
-        // Token invalid, but continue without user
         console.log('Optional auth: Invalid token, continuing without user');
       }
     }
@@ -106,4 +107,8 @@ export async function optionalAuth(c: Context, next: Next) {
     console.error('Optional authentication error:', error);
     await next();
   }
+}
+
+function sanitizeUser(arg0: any): any {
+  throw new Error('Function not implemented.');
 }

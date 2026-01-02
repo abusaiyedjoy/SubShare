@@ -1,9 +1,7 @@
 import { Context, Next } from 'hono';
 import { z, ZodSchema, ZodError } from 'zod';
 
-/**
- * Validation middleware factory
- */
+
 export function validate(schema: ZodSchema) {
   return async (c: Context, next: Next) => {
     try {
@@ -20,7 +18,7 @@ export function validate(schema: ZodSchema) {
           {
             success: false,
             error: 'Validation failed',
-            details: error.errors.map(err => ({
+            details: error.issues.map(err => ({
               field: err.path.join('.'),
               message: err.message,
             })),
@@ -40,9 +38,7 @@ export function validate(schema: ZodSchema) {
   };
 }
 
-/**
- * Query parameter validation
- */
+// Validate query parameters middleware
 export function validateQuery(schema: ZodSchema) {
   return async (c: Context, next: Next) => {
     try {
@@ -58,7 +54,7 @@ export function validateQuery(schema: ZodSchema) {
           {
             success: false,
             error: 'Query validation failed',
-            details: error.errors.map(err => ({
+            details: error.issues.map(err => ({
               field: err.path.join('.'),
               message: err.message,
             })),
@@ -80,7 +76,6 @@ export function validateQuery(schema: ZodSchema) {
 
 // Common validation schemas
 export const schemas = {
-  // Auth schemas
   register: z.object({
     name: z.string().min(2, 'Name must be at least 2 characters').max(100),
     email: z.string().email('Invalid email address'),
@@ -92,13 +87,11 @@ export const schemas = {
     password: z.string().min(1, 'Password is required'),
   }),
 
-  // Platform schemas
   createPlatform: z.object({
     name: z.string().min(2, 'Platform name must be at least 2 characters').max(100),
     logo_url: z.string().url('Invalid URL').optional(),
   }),
 
-  // Subscription schemas
   shareSubscription: z.object({
     platform_id: z.number().int().positive('Invalid platform ID'),
     credentials_username: z.string().min(1, 'Username is required').max(200),
@@ -162,16 +155,12 @@ export const schemas = {
   }),
 };
 
-/**
- * Get validated data from context
- */
+
 export function getValidatedData<T>(c: Context): T {
   return c.get('validatedData') as T;
 }
 
-/**
- * Get validated query from context
- */
+
 export function getValidatedQuery<T>(c: Context): T {
   return c.get('validatedQuery') as T;
 }
