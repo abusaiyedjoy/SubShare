@@ -6,17 +6,18 @@ import { apiClient } from "@/lib/api";
 import { Header } from "@/components/layout/Header";
 import { Search, ChevronRight, Sparkles, TrendingUp, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { Footer } from "@/components/layout/Footer";
 
 const platformColors: Record<string, string> = {
-  spotify: "bg-green-500",
-  youtube: "bg-red-500",
-  netflix: "bg-red-600",
-  paramount: "bg-blue-500",
-  dazn: "bg-secondary-800",
-  hbo: "bg-purple-600",
-  amazon: "bg-orange-500",
-  disney: "bg-blue-600",
-  apple: "bg-gradient-to-br from-purple-500 to-pink-500",
+  spotify: "#1DB954",
+  youtube: "#FF0000",
+  netflix: "#E50914",
+  paramount: "#0064FF",
+  dazn: "#000000",
+  hbo: "#9333EA",
+  amazon: "#FF9900",
+  disney: "#113CCF",
+  apple: "#A855F7",
 };
 
 const categories = [
@@ -46,43 +47,30 @@ export default function HomePage() {
   const featuredCount = subscriptions.length || 571;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-secondary via-secondary-700 to-secondary-900">
+    <div className="min-h-screen bg-gradient-to-b from-[#0A1628] via-[#0D1E35] to-[#162845]">
       <Header />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-secondary">
-        {/* Decorative background */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute inset-0" style={{
-            backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(0, 217, 180) 1px, transparent 0)',
-            backgroundSize: '40px 40px'
-          }}></div>
-        </div>
-        
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 grid-pattern opacity-10"></div>
         <div className="container relative mx-auto px-4 py-16 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 border border-primary/20">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-primary">
-                {featuredCount} services available
-              </span>
-            </div>
-            
-            <h1 className="mb-6 text-4xl font-extrabold leading-tight text-white md:text-6xl lg:text-7xl">
-              Share and access
+
+            <h1 className="mb-6 text-4xl font-extrabold leading-tight text-white md:text-6xl lg:text-7xl animate-slide-in-left">
+              <span className="gradient-text">{featuredCount} services</span>{" "}
+              available
               <br />
-              <span className="bg-gradient-to-r from-primary to-primary-300 bg-clip-text text-transparent">
-                premium subscriptions
-              </span>
+              for{" "}
+              <span className="gradient-text">co-subscription</span>
             </h1>
 
-            <p className="mb-10 text-lg text-gray-300 md:text-xl">
+            <p className="mb-10 text-lg text-gray-300 md:text-xl animate-slide-in-right">
               Share and access premium subscription services at a fraction of the cost.
               Join thousands of users saving money together.
             </p>
 
             {/* Search Bar */}
-            <div className="mx-auto mb-8 flex max-w-2xl flex-col gap-4 sm:flex-row">
+            <div className="mx-auto mb-8 flex max-w-2xl flex-col gap-4 sm:flex-row animate-scale-in">
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <input
@@ -90,14 +78,14 @@ export default function HomePage() {
                   placeholder="Spotify, Disney+..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-14 w-full rounded-xl bg-secondary-700 border border-secondary-600 pl-12 pr-4 text-white placeholder-gray-400 transition-all focus:bg-secondary-600 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="h-14 w-full rounded-xl bg-white/5 pl-12 pr-4 text-white placeholder-gray-400 backdrop-blur-sm transition-all border border-white/10 focus:bg-white/10 focus:border-[#00D9B4]"
                 />
               </div>
               <div className="relative">
                 <select
                   value={selectedLocation}
                   onChange={(e) => setSelectedLocation(e.target.value)}
-                  className="h-14 w-full appearance-none rounded-xl bg-secondary-700 border border-secondary-600 px-6 pr-12 text-white transition-all focus:bg-secondary-600 focus:outline-none focus:ring-2 focus:ring-primary sm:w-auto"
+                  className="h-14 w-full appearance-none rounded-xl bg-white/5 px-6 pr-12 text-white backdrop-blur-sm transition-all border border-white/10 focus:bg-white/10 focus:border-[#00D9B4] sm:w-auto"
                 >
                   <option value="United Kingdom">🇬🇧 United Kingdom</option>
                   <option value="United States">🇺🇸 United States</option>
@@ -114,11 +102,10 @@ export default function HomePage() {
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                    selectedCategory === category.id
-                      ? "bg-primary text-secondary shadow-lg shadow-primary/30"
-                      : "bg-secondary-700 text-gray-300 hover:bg-secondary-600 border border-secondary-600"
-                  }`}
+                  className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${selectedCategory === category.id
+                      ? "gradient-primary text-[#0A1628] shadow-glow-primary scale-105"
+                      : "bg-white/5 text-gray-300 hover:bg-white/10 backdrop-blur-sm border border-white/10"
+                    }`}
                 >
                   <span>{category.icon}</span>
                   <span>{category.name}</span>
@@ -137,7 +124,7 @@ export default function HomePage() {
           </h2>
           <Link
             href="#all"
-            className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary-300 transition-all"
+            className="flex items-center gap-2 text-sm font-medium text-[#00D9B4] hover:gap-3 transition-all"
           >
             See all <ArrowRight className="h-4 w-4" />
           </Link>
@@ -148,7 +135,7 @@ export default function HomePage() {
             {[...Array(8)].map((_, i) => (
               <div
                 key={i}
-                className="h-64 animate-pulse rounded-2xl bg-secondary-700"
+                className="h-64 animate-pulse rounded-2xl bg-white/5 border border-white/10"
               ></div>
             ))}
           </div>
@@ -156,17 +143,22 @@ export default function HomePage() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {subscriptions.slice(0, 8).map((sub: any, index: number) => {
               const platformName = sub.platform?.name?.toLowerCase() || "";
-              const colorClass =
-                platformColors[platformName] || "bg-gradient-to-br from-primary to-blue-500";
-              
+              const colorHex = platformColors[platformName] || "#00D9B4";
+
               return (
                 <Link
                   key={sub.id}
                   href={`/subscription/${sub.id}`}
-                  className="group relative overflow-hidden rounded-2xl bg-secondary-800 border border-secondary-700 transition-all hover:scale-105 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20"
+                  className="group relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-sm transition-all hover:bg-white/10 border border-white/10 card-hover"
+                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className={`h-32 ${colorClass} flex items-center justify-center p-6`}>
-                    <span className="text-4xl font-bold text-white">
+                  <div
+                    className="h-32 flex items-center justify-center p-6"
+                    style={{
+                      background: `linear-gradient(135deg, ${colorHex} 0%, ${colorHex}CC 100%)`
+                    }}
+                  >
+                    <span className="text-4xl font-bold text-white drop-shadow-lg">
                       {sub.platform?.name?.charAt(0) || "S"}
                     </span>
                   </div>
@@ -175,20 +167,20 @@ export default function HomePage() {
                       {sub.platform?.name || "Platform"}
                     </h3>
                     <div className="mb-4 flex items-baseline gap-2">
-                      <span className="text-3xl font-bold text-primary">
+                      <span className="text-3xl font-bold text-[#00D9B4]">
                         {sub.price_per_hour}€
                       </span>
                       <span className="text-sm text-gray-400">/ month</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-400">
-                        Save ~{Math.floor(sub.price_per_hour * 0.77)}%
+                        Participate for ~{Math.floor(sub.price_per_hour * 0.77)} %
                       </span>
-                      <ChevronRight className="h-4 w-4 text-primary transition-transform group-hover:translate-x-1" />
+                      <ChevronRight className="h-4 w-4 text-[#00D9B4] transition-transform group-hover:translate-x-1" />
                     </div>
                   </div>
                   <div className="absolute top-3 right-3">
-                    <div className="rounded-full bg-black/50 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                    <div className="rounded-full bg-black/40 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm border border-white/20">
                       <TrendingUp className="inline h-3 w-3 mr-1" />
                       {sub.total_shares_count || 0} shares
                     </div>
@@ -200,7 +192,7 @@ export default function HomePage() {
         )}
 
         {!isLoading && subscriptions.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-secondary-600 bg-secondary-800 p-12 text-center">
+          <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-12 text-center backdrop-blur-sm">
             <p className="text-lg text-gray-400">
               No subscriptions found. Try adjusting your filters.
             </p>
@@ -208,29 +200,14 @@ export default function HomePage() {
         )}
 
         <div className="mt-12 text-center">
-          <button className="rounded-xl bg-primary px-8 py-4 text-lg font-semibold text-secondary transition-all hover:bg-primary-400 hover:shadow-lg hover:shadow-primary/30 hover:scale-105">
+          <button className="rounded-xl gradient-primary px-8 py-4 text-lg font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105">
             See all subscriptions
           </button>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 py-16 lg:px-8">
-        <div className="rounded-3xl bg-gradient-to-r from-primary to-primary-300 p-12 text-center shadow-2xl">
-          <h2 className="mb-4 text-3xl font-bold text-secondary md:text-4xl">
-            Start Sharing Today
-          </h2>
-          <p className="mb-8 text-lg text-secondary-700">
-            Join thousands of users saving money on subscriptions
-          </p>
-          <Link
-            href="/register"
-            className="inline-block rounded-xl bg-secondary px-8 py-4 text-lg font-semibold text-white transition-all hover:scale-105 hover:shadow-2xl hover:bg-secondary-700"
-          >
-            Get Started Free
-          </Link>
-        </div>
-      </section>
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
