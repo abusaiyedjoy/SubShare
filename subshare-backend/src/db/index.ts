@@ -1,4 +1,5 @@
 import { drizzle } from 'drizzle-orm/d1';
+import { eq } from 'drizzle-orm';
 import type { D1Database } from '@cloudflare/workers-types';
 import * as schema from './schema';
 
@@ -10,18 +11,20 @@ export function getDb(D1: D1Database) {
 }
 
 // Initialize database with default data
-export async function initializeDatabase(db: any) {
+export async function initializeDatabase(db: any, adminEmail: string) {
     try {
         console.log('Initializing database...');
 
         const { users, platformSettings } = schema;
 
         // Check if admin exists
-        const adminEmail = process.env.ADMIN_EMAIL || 'abusaiyedjoy1@gmail.com';
-        const existingAdmin = await db.select().from(users).where(schema.eq(users.email, adminEmail)).limit(1).all();
+        const existingAdmin = await db.select()
+            .from(users)
+            .where(eq(users.email, adminEmail))
+            .limit(1);
 
         if (existingAdmin.length === 0) {
-            // Note: In Workers, we'll use Web Crypto API for hashing
+            // Hash password using Web Crypto API
             const hashedPassword = await hashPassword('admin123');
 
             await db.insert(users).values({
@@ -67,9 +70,8 @@ export async function initializeDatabase(db: any) {
         for (const setting of defaultSettings) {
             const existingSetting = await db.select()
                 .from(platformSettings)
-                .where(schema.eq(platformSettings.key, setting.key))
-                .limit(1)
-                .all();
+                .where(eq(platformSettings.key, setting.key))
+                .limit(1);
 
             if (existingSetting.length === 0) {
                 await db.insert(platformSettings).values(setting);

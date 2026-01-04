@@ -54,7 +54,7 @@ app.use('*', async (c, next) => {
   if (!isInitialized) {
     try {
       const db = c.get('db');
-      await initializeDatabase(db);
+      await initializeDatabase(db , 'abusaiyedjoy1@gmail.com');
       isInitialized = true;
     } catch (error) {
       console.error('Database initialization error:', error);
