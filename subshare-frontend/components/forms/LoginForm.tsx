@@ -8,7 +8,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import { Eye, EyeOff, Lock, Mail, Loader2 } from "lucide-react";
-import type { LoginCredentials } from "@/types";
+import type { LoginCredentials } from "@/lib/api";
 
 export function LoginForm() {
     const router = useRouter();

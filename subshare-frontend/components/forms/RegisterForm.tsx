@@ -8,7 +8,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import { Eye, EyeOff, Lock, Mail, User as UserIcon, Loader2, CheckCircle2 } from "lucide-react";
-import type { RegisterData } from "@/types";
+import type { RegisterData } from "@/lib/api";
 
 export function RegisterForm() {
     const router = useRouter();
@@ -44,12 +44,14 @@ export function RegisterForm() {
                 return;
             }
 
-            if (value.password.length < 8) {
-                setError("Password must be at least 8 characters");
+            if (value.password.length < 6) {
+                setError("Password must be at least 6 characters");
                 return;
             }
 
-            registerMutation.mutate(value);
+            // Remove confirmPassword before sending to API
+            const { confirmPassword, ...registerData } = value;
+            registerMutation.mutate(registerData);
         },
     });
 
@@ -158,13 +160,13 @@ export function RegisterForm() {
                         </div>
                         {field.state.value && (
                             <p className="mt-2 text-xs">
-                                {field.state.value.length >= 8 ? (
+                                {field.state.value.length >= 6 ? (
                                     <span className="flex items-center text-green-400">
                                         <CheckCircle2 className="mr-1 h-3 w-3" />
                                         Strong password
                                     </span>
                                 ) : (
-                                    <span className="text-gray-400">At least 8 characters</span>
+                                    <span className="text-gray-400">At least 6 characters</span>
                                 )}
                             </p>
                         )}
@@ -209,7 +211,6 @@ export function RegisterForm() {
                     </div>
                 )}
             </form.Field>
-
             {/* Terms Checkbox */}
             <div className="flex items-start text-sm">
                 <input
