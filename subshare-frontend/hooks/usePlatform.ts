@@ -1,7 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
-import { queryKeys } from "@/lib/queryClient";
-import type { SubscriptionPlatform } from "@/types";
 
 export function usePlatforms() {
   const queryClient = useQueryClient();
@@ -12,8 +10,14 @@ export function usePlatforms() {
     isLoading: isLoadingPlatforms,
     refetch: refetchPlatforms 
   } = useQuery({
-    queryKey: queryKeys.platforms,
+    queryKey: ["platforms"],
     queryFn: () => apiClient.getPlatforms(),
+  });
+
+  // Search platforms
+  const searchPlatformsMutation = useMutation({
+    mutationFn: ({ searchTerm, activeOnly }: { searchTerm: string; activeOnly?: boolean }) => 
+      apiClient.searchPlatforms(searchTerm, activeOnly),
   });
 
   // Create platform mutation (admin only)
@@ -23,7 +27,7 @@ export function usePlatforms() {
       logo_url?: string;
     }) => apiClient.createPlatform(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platforms });
+      queryClient.invalidateQueries({ queryKey: ["platforms"] });
     },
   });
 
@@ -34,45 +38,58 @@ export function usePlatforms() {
       data 
     }: { 
       id: number; 
-      data: Partial<SubscriptionPlatform> 
+      data: any
     }) => apiClient.updatePlatform(id, data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platforms });
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform(variables.id) });
+      queryClient.invalidateQueries({ queryKey: ["platforms"] });
+      queryClient.invalidateQueries({ queryKey: ["platform", variables.id] });
     },
   });
 
   // Verify platform mutation (admin only)
   const verifyPlatformMutation = useMutation({
-    mutationFn: (id: number) => apiClient.verifyPlatform(id),
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platforms });
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform(id) });
+    mutationFn: ({ id, isActive }: { id: number; isActive: boolean }) => 
+      apiClient.verifyPlatform(id, isActive),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["platforms"] });
+      queryClient.invalidateQueries({ queryKey: ["platform", variables.id] });
+    },
+  });
+
+  // Delete platform mutation (admin only)
+  const deletePlatformMutation = useMutation({
+    mutationFn: (id: number) => apiClient.deletePlatform(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["platforms"] });
     },
   });
 
   // Helper to get platform by id
   const getPlatformById = (id: number) => {
-    return platformsData?.data?.find(p => p.id === id);
+    return platformsData?.find((p: any) => p.id === id);
   };
 
   // Helper to get active platforms only
   const getActivePlatforms = () => {
-    return platformsData?.data?.filter(p => p.is_active && p.status) || [];
+    return platformsData?.filter((p: any) => p.is_active && p.status) || [];
   };
 
   return {
-    platforms: platformsData?.data || [],
+    platforms: platformsData || [],
     activePlatforms: getActivePlatforms(),
     isLoadingPlatforms,
     getPlatformById,
     getActivePlatforms,
+    searchPlatforms: searchPlatformsMutation.mutateAsync,
     createPlatform: createPlatformMutation.mutateAsync,
     updatePlatform: updatePlatformMutation.mutateAsync,
     verifyPlatform: verifyPlatformMutation.mutateAsync,
+    deletePlatform: deletePlatformMutation.mutateAsync,
+    searchPlatformsMutation,
     createPlatformMutation,
     updatePlatformMutation,
     verifyPlatformMutation,
+    deletePlatformMutation,
     refetchPlatforms,
   };
 }

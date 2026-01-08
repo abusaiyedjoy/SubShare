@@ -266,14 +266,15 @@ export default function MyAccessPage() {
         title="Subscription Credentials"
         size="md"
       >
-        {credentialsData?.data ? (
+        {credentialsData ? (
           <div className="space-y-4">
             <div className="rounded-lg bg-[#00D9B4]/10 border border-[#00D9B4]/30 p-4">
               <p className="text-sm text-[#00D9B4] mb-2">
                 <strong>Platform:</strong> {selectedSubscription?.subscription?.platform?.name}
               </p>
               <p className="text-sm text-[#00D9B4]">
-                <strong>Access until:</strong> {new Date(credentialsData.data.access_end_time).toLocaleString()}
+                <strong>Access until:</strong>  
+                {/* {new Date(credentialsData.access_end_time).toLocaleString()} */}
               </p>
             </div>
 
@@ -285,12 +286,12 @@ export default function MyAccessPage() {
               <div className="flex items-center gap-2">
                 <input
                   type="text"
-                  value={credentialsData.data.username}
+                  value={credentialsData.username}
                   readOnly
                   className="h-12 flex-1 rounded-lg bg-white/5 px-4 text-white border border-white/10"
                 />
                 <button
-                  onClick={() => handleCopyCredentials(credentialsData.data.username, "Username")}
+                  onClick={() => handleCopyCredentials(credentialsData.username, "Username")}
                   className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-[#00D9B4] border border-white/10"
                 >
                   <Copy className="h-5 w-5" />
@@ -306,7 +307,7 @@ export default function MyAccessPage() {
               <div className="flex items-center gap-2">
                 <input
                   type={showPassword ? "text" : "password"}
-                  value={credentialsData.data.password}
+                  value={credentialsData.password}
                   readOnly
                   className="h-12 flex-1 rounded-lg bg-white/5 px-4 text-white border border-white/10"
                 />
@@ -317,7 +318,7 @@ export default function MyAccessPage() {
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
                 <button
-                  onClick={() => handleCopyCredentials(credentialsData.data.password, "Password")}
+                  onClick={() => handleCopyCredentials(credentialsData.password, "Password")}
                   className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-[#00D9B4] border border-white/10"
                 >
                   <Copy className="h-5 w-5" />

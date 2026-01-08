@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function proxy(request: NextRequest) {
-  const token = request.cookies.get("token")?.value;
+  const token = request.headers.get("authorization")?.replace("Bearer ", "") || request.cookies.get("token")?.value;
   const { pathname } = request.nextUrl;
   // Public routes that don't require authentication
   const publicRoutes = ["/", "/login", "/register", "/forgot-password", "/blog", "/help-center"];
@@ -20,9 +20,9 @@ export function proxy(request: NextRequest) {
                       pathname.startsWith("/profile");
 
   // If trying to access protected route without token, redirect to login
-  if ((isAdminRoute || isUserRoute) && !token) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
+  // if ((isAdminRoute || isUserRoute) && !token) {
+  //   return NextResponse.redirect(new URL("/login", request.url));
+  // }
 
   // If logged in and trying to access login/register, redirect to dashboard
   if (token && (pathname === "/login" || pathname === "/register")) {

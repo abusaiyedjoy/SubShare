@@ -22,8 +22,7 @@ export default function AdminTransactionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState("all");
 
-  const filteredTransactions = transactions
-    .filter(t => filterType === "all" || t.transaction_type === filterType)
+  const filteredTransactions = transactions?.filter(t => filterType === "all" || t.transaction_type === filterType)
     .filter(t => filterStatus === "all" || t.status === filterStatus)
     .filter(t => 
       !searchQuery || 
@@ -32,17 +31,13 @@ export default function AdminTransactionsPage() {
     );
 
   const stats = {
-    totalRevenue: transactions
-      .filter(t => t.transaction_type === "purchase" && t.status === "completed")
+    totalRevenue: transactions?.filter(t => t.transaction_type === "purchase" && t.status === "completed")
       .reduce((acc, t) => acc + t.amount, 0),
-    totalCommission: transactions
-      .filter(t => t.transaction_type === "commission")
+    totalCommission: transactions?.filter(t => t.transaction_type === "commission")
       .reduce((acc, t) => acc + t.amount, 0),
-    totalTopups: transactions
-      .filter(t => t.transaction_type === "topup" && t.status === "completed")
+    totalTopups: transactions?.filter(t => t.transaction_type === "topup" && t.status === "completed")
       .reduce((acc, t) => acc + t.amount, 0),
-    totalRefunds: transactions
-      .filter(t => t.transaction_type === "refund")
+    totalRefunds: transactions?.filter(t => t.transaction_type === "refund")
       .reduce((acc, t) => acc + t.amount, 0),
   };
 
@@ -197,14 +192,14 @@ export default function AdminTransactionsPage() {
         <div className="rounded-2xl bg-white/5 p-6 border border-white/10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-white">
-              Transaction History ({filteredTransactions.length})
+              Transaction History ({filteredTransactions?.length})
             </h2>
             <div className="text-sm text-gray-400">
-              Showing {filteredTransactions.length} of {transactions.length} transactions
+              Showing {filteredTransactions?.length} of {transactions?.length} transactions
             </div>
           </div>
 
-          <TransactionList transactions={filteredTransactions} />
+          <TransactionList transactions={filteredTransactions ?? []} />
         </div>
       </div>
     </Layout>

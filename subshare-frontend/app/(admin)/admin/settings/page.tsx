@@ -29,7 +29,7 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     const initialData: Record<string, string> = {};
-    settings.forEach(setting => {
+    settings?.forEach(setting => {
       initialData[setting.key] = setting.value;
     });
     setFormData(initialData);
@@ -52,7 +52,7 @@ export default function AdminSettingsPage() {
 
   const handleReset = () => {
     const initialData: Record<string, string> = {};
-    settings.forEach(setting => {
+    settings?.forEach(setting => {
       initialData[setting.key] = setting.value;
     });
     setFormData(initialData);
@@ -189,7 +189,7 @@ export default function AdminSettingsPage() {
 
                 <div className="space-y-6">
                   {group.settings.map((setting) => {
-                    const currentSetting = settings.find(s => s.key === setting.key);
+                    const currentSetting = settings?.find(s => s.key === setting.key);
                     
                     return (
                       <div key={setting.key}>

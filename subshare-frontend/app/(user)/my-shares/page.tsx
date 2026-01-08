@@ -22,6 +22,7 @@ import { formatDateTime } from "@/lib/utils";
 import { useSubscriptions } from "@/hooks/useSubscription";
 import { LoadingSpinner } from "@/components/shared/LoadingSpenner";
 import { EmptyState } from "@/components/shared/EmptyStats";
+import { SharedSubscription } from "@/types";
 
 export default function MySharesPage() {
   const { sharedSubscriptions, isLoadingSharedSubscriptions, deleteSubscription } = useSubscriptions();
@@ -96,7 +97,7 @@ export default function MySharesPage() {
                 <span className="text-sm text-gray-400">Active Users</span>
               </div>
               <p className="text-3xl font-bold text-white">
-                {sharedSubscriptions.reduce((acc, sub) => acc + sub.total_shares_count, 0)}
+                {sharedSubscriptions.reduce((acc: number, sub: any) => acc + sub.total_shares_count, 0)}
               </p>
             </div>
 
@@ -108,7 +109,7 @@ export default function MySharesPage() {
                 <span className="text-sm text-gray-400">Total Earnings</span>
               </div>
               <p className="text-3xl font-bold text-white">
-                ${sharedSubscriptions.reduce((acc, sub) => acc + (sub.total_shares_count * sub.price_per_hour * 24), 0).toFixed(2)}
+                ${sharedSubscriptions.reduce((acc: number, sub: any) => acc + (sub.total_shares_count * sub.price_per_hour * 24), 0).toFixed(2)}
               </p>
             </div>
           </div>
@@ -127,7 +128,7 @@ export default function MySharesPage() {
           />
         ) : (
           <div className="space-y-4">
-            {sharedSubscriptions.map((subscription) => (
+            {sharedSubscriptions.map((subscription: SharedSubscription) => (
               <div
                 key={subscription.id}
                 className="rounded-2xl bg-white/5 p-6 border border-white/10 hover:bg-white/10 transition-all"

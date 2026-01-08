@@ -1,13 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
-import { queryKeys } from "@/lib/queryClient";
-import type { SharedSubscription } from "@/types";
 
 interface SubscriptionFilters {
   platform_id?: number;
-  search?: string;
-  status?: boolean;
-  is_verified?: boolean;
+  verified_only?: boolean;
+  active_only?: boolean;
 }
 
 export function useSubscriptions(filters?: SubscriptionFilters) {
@@ -19,16 +16,16 @@ export function useSubscriptions(filters?: SubscriptionFilters) {
     isLoading: isLoadingSubscriptions,
     refetch: refetchSubscriptions 
   } = useQuery({
-    queryKey: queryKeys.subscriptions(filters),
+    queryKey: ["subscriptions", filters],
     queryFn: () => apiClient.getSubscriptions(filters),
   });
 
   // Get single subscription
   const useSubscription = (id: number) => {
     return useQuery({
-      queryKey: queryKeys.subscription(id),
+      queryKey: ["subscription", id],
       queryFn: () => apiClient.getSubscription(id),
-      enabled: !!id,
+      enabled: !!id && id > 0,
     });
   };
 
@@ -38,7 +35,7 @@ export function useSubscriptions(filters?: SubscriptionFilters) {
     isLoading: isLoadingMySubscriptions,
     refetch: refetchMySubscriptions 
   } = useQuery({
-    queryKey: queryKeys.mySubscriptions,
+    queryKey: ["mySubscriptions"],
     queryFn: () => apiClient.getMySubscriptions(),
   });
 
@@ -48,7 +45,7 @@ export function useSubscriptions(filters?: SubscriptionFilters) {
     isLoading: isLoadingSharedSubscriptions,
     refetch: refetchSharedSubscriptions 
   } = useQuery({
-    queryKey: queryKeys.sharedSubscriptions,
+    queryKey: ["sharedSubscriptions"],
     queryFn: () => apiClient.getSharedSubscriptions(),
   });
 
@@ -62,8 +59,8 @@ export function useSubscriptions(filters?: SubscriptionFilters) {
       expires_at?: string;
     }) => apiClient.createSubscription(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.subscriptions() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.sharedSubscriptions });
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["sharedSubscriptions"] });
     },
   });
 
@@ -74,12 +71,17 @@ export function useSubscriptions(filters?: SubscriptionFilters) {
       data 
     }: { 
       id: number; 
-      data: Partial<SharedSubscription> 
+      data: {
+        credentials_username?: string;
+        credentials_password?: string;
+        price_per_hour?: number;
+        status?: boolean;
+      }
     }) => apiClient.updateSubscription(id, data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.subscriptions() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.subscription(variables.id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.sharedSubscriptions });
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["subscription", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["sharedSubscriptions"] });
     },
   });
 
@@ -87,8 +89,8 @@ export function useSubscriptions(filters?: SubscriptionFilters) {
   const deleteSubscriptionMutation = useMutation({
     mutationFn: (id: number) => apiClient.deleteSubscription(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.subscriptions() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.sharedSubscriptions });
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["sharedSubscriptions"] });
     },
   });
 
@@ -96,23 +98,23 @@ export function useSubscriptions(filters?: SubscriptionFilters) {
   const unlockSubscriptionMutation = useMutation({
     mutationFn: ({ 
       id, 
-      duration_days 
+      hours 
     }: { 
       id: number; 
-      duration_days: number 
-    }) => apiClient.unlockSubscription(id, { duration_days }),
+      hours: number 
+    }) => apiClient.unlockSubscription(id, hours),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.subscription(variables.id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.mySubscriptions });
-      queryClient.invalidateQueries({ queryKey: queryKeys.walletBalance });
-      queryClient.invalidateQueries({ queryKey: queryKeys.walletTransactions });
+      queryClient.invalidateQueries({ queryKey: ["subscription", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["mySubscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
+      queryClient.invalidateQueries({ queryKey: ["walletTransactions"] });
     },
   });
 
   // Get subscription credentials
   const useSubscriptionCredentials = (id: number, hasAccess: boolean) => {
     return useQuery({
-      queryKey: queryKeys.subscriptionCredentials(id),
+      queryKey: ["subscriptionCredentials", id],
       queryFn: () => apiClient.getSubscriptionCredentials(id),
       enabled: !!id && hasAccess,
     });
@@ -126,16 +128,16 @@ export function useSubscriptions(filters?: SubscriptionFilters) {
     }: { 
       id: number; 
       reason: string 
-    }) => apiClient.reportSubscription(id, { reason }),
+    }) => apiClient.createReport(id, reason),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.subscription(variables.id) });
+      queryClient.invalidateQueries({ queryKey: ["subscription", variables.id] });
     },
   });
 
   return {
-    subscriptions: subscriptionsData?.data || [],
-    mySubscriptions: mySubscriptionsData?.data || [],
-    sharedSubscriptions: sharedSubscriptionsData?.data || [],
+    subscriptions: subscriptionsData || [],
+    mySubscriptions: mySubscriptionsData || [],
+    sharedSubscriptions: sharedSubscriptionsData || [],
     isLoadingSubscriptions,
     isLoadingMySubscriptions,
     isLoadingSharedSubscriptions,

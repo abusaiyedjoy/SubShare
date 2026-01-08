@@ -45,8 +45,8 @@ export default function AdminUsersPage() {
       await adjustUserBalance({
         id: selectedUser.id,
         amount: parseFloat(amount),
-        type: adjustmentType,
-        notes: notes || undefined,
+        // type: adjustmentType,
+        notes: notes ?? "",
       });
       toast.success(`Balance ${adjustmentType === "add" ? "added" : "deducted"} successfully`);
       setBalanceModalOpen(false);
@@ -66,8 +66,7 @@ export default function AdminUsersPage() {
     setBalanceModalOpen(true);
   };
 
-  const filteredUsers = users
-    .filter(u => roleFilter === "all" || u.role === roleFilter)
+  const filteredUsers = users?.filter(u => roleFilter === "all" || u.role === roleFilter)
     .filter(u => 
       !searchQuery || 
       u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -75,10 +74,10 @@ export default function AdminUsersPage() {
     );
 
   const stats = {
-    totalUsers: users.length,
-    admins: users.filter(u => u.role === "admin").length,
-    regularUsers: users.filter(u => u.role === "user").length,
-    totalBalance: users.reduce((acc, u) => acc + u.balance, 0),
+    totalUsers: users?.length || 0,
+    admins: users?.filter(u => u.role === "admin").length || 0,
+    regularUsers: users?.filter(u => u.role === "user").length || 0,
+    totalBalance: users?.reduce((acc, u) => acc + u.balance, 0) || 0,
   };
 
   if (isLoadingUsers) {
@@ -163,7 +162,7 @@ export default function AdminUsersPage() {
         </div>
 
         {/* Users List */}
-        {filteredUsers.length === 0 ? (
+        {filteredUsers?.length === 0 ? (
           <EmptyState
             icon={Users}
             title="No Users Found"
@@ -171,7 +170,7 @@ export default function AdminUsersPage() {
           />
         ) : (
           <div className="space-y-4">
-            {filteredUsers.map((user) => (
+            {filteredUsers?.map((user) => (
               <div
                 key={user.id}
                 className="rounded-2xl bg-white/5 p-6 border border-white/10 hover:bg-white/10 transition-all"

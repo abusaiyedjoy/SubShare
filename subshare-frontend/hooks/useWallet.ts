@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
-import { queryKeys } from "@/lib/queryClient";
 import { useAuthStore } from "@/store/authStore";
 
 export function useWallet() {
@@ -8,9 +7,20 @@ export function useWallet() {
   const { user, updateUser } = useAuthStore();
 
   // Get wallet balance
-  const { data: balanceData, isLoading: isLoadingBalance } = useQuery({
-    queryKey: queryKeys.walletBalance,
-    queryFn: () => apiClient.getWalletBalance(),
+  const { 
+    data: balanceData, 
+    isLoading: isLoadingBalance,
+    refetch: refetchBalance
+  } = useQuery({
+    queryKey: ["walletBalance"],
+    queryFn: async () => {
+      const data = await apiClient.getWalletBalance();
+      // Update user balance in store
+      if (user && data.balance !== undefined) {
+        updateUser({ ...user, balance: data.balance });
+      }
+      return data;
+    },
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
@@ -20,7 +30,7 @@ export function useWallet() {
     isLoading: isLoadingTransactions,
     refetch: refetchTransactions 
   } = useQuery({
-    queryKey: queryKeys.walletTransactions,
+    queryKey: ["walletTransactions"],
     queryFn: () => apiClient.getWalletTransactions(),
   });
 
@@ -30,7 +40,7 @@ export function useWallet() {
     isLoading: isLoadingTopupRequests,
     refetch: refetchTopupRequests 
   } = useQuery({
-    queryKey: queryKeys.topupRequests,
+    queryKey: ["topupRequests"],
     queryFn: () => apiClient.getTopupRequests(),
   });
 
@@ -40,10 +50,18 @@ export function useWallet() {
       amount: number;
       transaction_id: string;
       screenshot_url?: string;
-    }) => apiClient.requestTopup(data),
+    }) => apiClient.createTopupRequest(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.topupRequests });
-      queryClient.invalidateQueries({ queryKey: queryKeys.walletTransactions });
+      queryClient.invalidateQueries({ queryKey: ["topupRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["walletTransactions"] });
+    },
+  });
+
+  // Cancel topup request mutation
+  const cancelTopupMutation = useMutation({
+    mutationFn: (id: number) => apiClient.cancelTopupRequest(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["topupRequests"] });
     },
   });
 
@@ -52,18 +70,21 @@ export function useWallet() {
     if (user) {
       updateUser({ ...user, balance: newBalance });
     }
-    queryClient.invalidateQueries({ queryKey: queryKeys.walletBalance });
+    queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
   };
 
   return {
-    balance: balanceData?.data?.balance || user?.balance || 0,
-    transactions: transactionsData?.data || [],
-    topupRequests: topupRequestsData?.data || [],
+    balance: balanceData?.balance || user?.balance || 0,
+    transactions: transactionsData || [],
+    topupRequests: topupRequestsData || [],
     isLoadingBalance,
     isLoadingTransactions,
     isLoadingTopupRequests,
     requestTopup: requestTopupMutation.mutateAsync,
+    cancelTopup: cancelTopupMutation.mutateAsync,
     requestTopupMutation,
+    cancelTopupMutation,
+    refetchBalance,
     refetchTransactions,
     refetchTopupRequests,
     updateBalance,

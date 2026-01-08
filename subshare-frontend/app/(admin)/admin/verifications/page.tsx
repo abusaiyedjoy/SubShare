@@ -74,7 +74,7 @@ export default function AdminVerificationsPage() {
               <span className="text-sm text-gray-400">Pending Verification</span>
             </div>
             <p className="text-3xl font-bold text-yellow-400">
-              {pendingVerifications.length}
+              {pendingVerifications?.length}
             </p>
           </div>
 
@@ -84,7 +84,7 @@ export default function AdminVerificationsPage() {
               <span className="text-sm text-gray-400">Total Value</span>
             </div>
             <p className="text-3xl font-bold text-green-400">
-              ${pendingVerifications.reduce((acc, sub) => acc + (sub.price_per_hour * 24 * 30), 0).toFixed(2)}
+              ${pendingVerifications?.reduce((acc, sub) => acc + (sub.price_per_hour * 24 * 30), 0).toFixed(2)}
             </p>
           </div>
 
@@ -93,15 +93,15 @@ export default function AdminVerificationsPage() {
               <span className="text-sm text-gray-400">Avg. Price/Day</span>
             </div>
             <p className="text-3xl font-bold text-[#00D9B4]">
-              ${pendingVerifications.length > 0 
-                ? (pendingVerifications.reduce((acc, sub) => acc + (sub.price_per_hour * 24), 0) / pendingVerifications.length).toFixed(2)
+              ${(pendingVerifications?.length || 0) > 0 
+                ? (pendingVerifications?.reduce((acc, sub) => acc + (sub.price_per_hour * 24), 0) / (pendingVerifications?.length || 1)).toFixed(2)
                 : "0.00"}
             </p>
           </div>
         </div>
 
         {/* Verifications List */}
-        {pendingVerifications.length === 0 ? (
+        {pendingVerifications?.length === 0 ? (
           <EmptyState
             icon={FileCheck}
             title="No Pending Verifications"
@@ -109,7 +109,7 @@ export default function AdminVerificationsPage() {
           />
         ) : (
           <div className="space-y-4">
-            {pendingVerifications.map((subscription) => (
+            {pendingVerifications?.map((subscription) => (
               <div
                 key={subscription.id}
                 className="rounded-2xl bg-white/5 p-6 border border-white/10 hover:bg-white/10 transition-all"

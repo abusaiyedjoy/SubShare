@@ -38,12 +38,13 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("United Kingdom");
 
-  const { data: subscriptionsData, isLoading } = useQuery({
-    queryKey: ["subscriptions", selectedCategory, searchQuery],
-    queryFn: () => apiClient.getSubscriptions({ search: searchQuery }),
-  });
+ const { data: subscriptionsData, isLoading } = useQuery({
+  queryKey: ["subscriptions", selectedCategory, searchQuery],
+  queryFn: () => apiClient.getSubscriptions(),
+  // queryFn: () => apiClient.getSubscriptions({ search: searchQuery }),
+});
 
-  const subscriptions = subscriptionsData?.data || [];
+ const subscriptions = (subscriptionsData as any)?.data || [];
   const featuredCount = subscriptions.length || 571;
 
   return (

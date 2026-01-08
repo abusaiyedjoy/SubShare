@@ -51,14 +51,13 @@ export default function AdminReportsPage() {
     setResolveModalOpen(true);
   };
 
-  const filteredReports = reports
-    .filter(r => filterStatus === "all" || r.status === filterStatus)
+  const filteredReports = reports?.filter(r => filterStatus === "all" || r.status === filterStatus)
     .filter(r => !searchQuery || r.reason.toLowerCase().includes(searchQuery.toLowerCase()));
 
   const stats = {
-    pending: reports.filter(r => r.status === "pending").length,
-    resolved: reports.filter(r => r.status === "resolved").length,
-    dismissed: reports.filter(r => r.status === "dismissed").length,
+    pending: reports?.filter(r => r.status === "pending").length,
+    resolved: reports?.filter(r => r.status === "resolved").length,
+    dismissed: reports?.filter(r => r.status === "dismissed").length,
   };
 
   if (isLoadingReports) {
@@ -134,7 +133,7 @@ export default function AdminReportsPage() {
         </div>
 
         {/* Reports List */}
-        {filteredReports.length === 0 ? (
+        {filteredReports?.length === 0 ? (
           <EmptyState
             icon={AlertCircle}
             title="No Reports"
@@ -142,7 +141,7 @@ export default function AdminReportsPage() {
           />
         ) : (
           <div className="space-y-4">
-            {filteredReports.map((report) => (
+            {filteredReports?.map((report) => (
               <div
                 key={report.id}
                 className="rounded-2xl bg-white/5 p-6 border border-white/10 hover:bg-white/10 transition-all"

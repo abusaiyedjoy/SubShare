@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/useToast";
 import { DollarSign, Eye, EyeOff, Loader2, Calendar } from "lucide-react";
 import { useSubscriptions } from "@/hooks/useSubscription";
 import { usePlatforms } from "@/hooks/usePlatform";
+import { SubscriptionPlatform } from "@/types";
 
 interface ShareSubscriptionFormProps {
     onSuccess?: () => void;
@@ -78,7 +79,7 @@ export function ShareSubscriptionForm({ onSuccess, onCancel }: ShareSubscription
                             className="h-12 w-full rounded-lg bg-white/5 px-4 text-white transition-all border border-white/10 focus:bg-white/10 focus:border-[#00D9B4] disabled:opacity-50"
                         >
                             <option value="" className="bg-[#0A1628]">Select a platform</option>
-                            {platforms.map((platform) => (
+                            {platforms.map((platform : SubscriptionPlatform) => (
                                 <option key={platform.id} value={platform.id} className="bg-[#0A1628]">
                                     {platform.name}
                                 </option>

@@ -10,6 +10,7 @@ import { useState } from "react";
 import { Download, Filter, Plus, Clock, CheckCircle, XCircle } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
 import { TopupForm } from "@/components/forms/TopUpForm";
+import { TopupRequest, Transaction } from "@/types";
 
 export default function WalletPage() {
   const { 
@@ -23,7 +24,7 @@ export default function WalletPage() {
 
   const filteredTransactions = filterType === "all" 
     ? transactions 
-    : transactions.filter(t => t.transaction_type === filterType);
+    : transactions.filter((t: Transaction) => t.transaction_type === filterType);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -105,7 +106,7 @@ export default function WalletPage() {
                 </div>
               ) : topupRequests.length > 0 ? (
                 <div className="space-y-3">
-                  {topupRequests.slice(0, 5).map((request) => (
+                  {topupRequests.slice(0, 5).map((request: TopupRequest) => (
                     <div
                       key={request.id}
                       className="rounded-lg bg-white/5 p-4 border border-white/10"

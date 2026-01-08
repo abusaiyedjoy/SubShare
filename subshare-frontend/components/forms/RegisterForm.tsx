@@ -20,7 +20,7 @@ export function RegisterForm() {
     const registerMutation = useMutation({
         mutationFn: (data: RegisterData) => apiClient.register(data),
         onSuccess: (data) => {
-            setAuth(data.user, data.token);
+            setAuth(data.user as any, data.token);
             router.push("/dashboard");
         },
         onError: (error: Error) => {

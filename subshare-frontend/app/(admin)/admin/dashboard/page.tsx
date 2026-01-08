@@ -62,7 +62,7 @@ export default function AdminDashboardPage() {
     },
     {
       title: "Total Commission",
-      value: `$${stats.totalCommission.toFixed(2)}`,
+      value: `$${(stats?.totalCommission ?? 0).toFixed(2)}`,
       icon: TrendingUp,
       color: "warning" as const,
     },
@@ -85,7 +85,7 @@ export default function AdminDashboardPage() {
     },
     {
       title: "Active Reports",
-      value: reports.filter(r => r.status === "pending").length,
+      value: reports?.filter(r => r.status === "pending").length,
       icon: AlertCircle,
       href: "/admin/reports",
       color: "error" as const,
@@ -165,7 +165,7 @@ export default function AdminDashboardPage() {
               </Link>
             </div>
             <TransactionList
-              transactions={transactions.slice(0, 5)}
+              transactions={(transactions || []).slice(0, 5)}
               isLoading={isLoadingTransactions}
             />
           </div>
@@ -175,9 +175,9 @@ export default function AdminDashboardPage() {
             {/* Recent Topup Requests */}
             <div className="rounded-2xl bg-white/5 p-6 border border-white/10">
               <h2 className="text-lg font-bold text-white mb-4">Recent Topup Requests</h2>
-              {topupRequests.length > 0 ? (
+              {(topupRequests || []).length > 0 ? (
                 <div className="space-y-3">
-                  {topupRequests.slice(0, 3).map((request) => (
+                  {(topupRequests || []).slice(0, 3).map((request) => (
                     <div
                       key={request.id}
                       className="rounded-lg bg-white/5 p-3 border border-white/10"
@@ -218,9 +218,9 @@ export default function AdminDashboardPage() {
             {/* Pending Verifications */}
             <div className="rounded-2xl bg-white/5 p-6 border border-white/10">
               <h2 className="text-lg font-bold text-white mb-4">Pending Verifications</h2>
-              {pendingVerifications.length > 0 ? (
+              {(pendingVerifications || []).length > 0 ? (
                 <div className="space-y-3">
-                  {pendingVerifications.slice(0, 3).map((sub) => (
+                  {(pendingVerifications || []).slice(0, 3).map((sub) => (
                     <div
                       key={sub.id}
                       className="rounded-lg bg-white/5 p-3 border border-white/10"

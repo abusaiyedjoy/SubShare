@@ -66,8 +66,7 @@ export default function AdminTopupRequestsPage() {
     setActionModalOpen(true);
   };
 
-  const filteredRequests = topupRequests
-    .filter(r => filterStatus === "all" || r.status === filterStatus)
+  const filteredRequests = topupRequests?.filter(r => filterStatus === "all" || r.status === filterStatus)
     .filter(r => 
       !searchQuery || 
       r.user?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -75,10 +74,10 @@ export default function AdminTopupRequestsPage() {
     );
 
   const stats = {
-    pending: topupRequests.filter(r => r.status === "pending").length,
-    approved: topupRequests.filter(r => r.status === "approved").length,
-    rejected: topupRequests.filter(r => r.status === "rejected").length,
-    total: topupRequests.reduce((acc, r) => acc + r.amount, 0),
+    pending: topupRequests?.filter(r => r.status === "pending").length,
+    approved: topupRequests?.filter(r => r.status === "approved").length,
+    rejected: topupRequests?.filter(r => r.status === "rejected").length,
+    total: topupRequests?.reduce((acc, r) => acc + r.amount, 0),
   };
 
   if (isLoadingTopupRequests) {
@@ -162,7 +161,7 @@ export default function AdminTopupRequestsPage() {
         </div>
 
         {/* Requests List */}
-        {filteredRequests.length === 0 ? (
+        {filteredRequests?.length === 0 ? (
           <EmptyState
             icon={DollarSign}
             title="No Topup Requests"
@@ -170,7 +169,7 @@ export default function AdminTopupRequestsPage() {
           />
         ) : (
           <div className="space-y-4">
-            {filteredRequests.map((request) => (
+            {filteredRequests?.map((request) => (
               <div
                 key={request.id}
                 className="rounded-2xl bg-white/5 p-6 border border-white/10 hover:bg-white/10 transition-all"

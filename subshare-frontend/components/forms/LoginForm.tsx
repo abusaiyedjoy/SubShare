@@ -19,7 +19,11 @@ export function LoginForm() {
     const loginMutation = useMutation({
         mutationFn: (credentials: LoginCredentials) => apiClient.login(credentials),
         onSuccess: (data) => {
-            setAuth(data.user, data.token);
+            setAuth(data.user as any, data.token);
+            if (data.user.role === "admin") {
+                router.push("/admin/dashboard");
+                return;
+            }
             router.push("/dashboard");
         },
         onError: (error: Error) => {

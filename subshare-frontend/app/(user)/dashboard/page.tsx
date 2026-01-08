@@ -13,6 +13,7 @@ import { useState } from "react";
 import { Key, Share2, TrendingUp, DollarSign, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useSubscriptions } from "@/hooks/useSubscription";
+import { SharedSubscription, Transaction } from "@/types";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -35,13 +36,16 @@ export default function DashboardPage() {
     },
     {
       title: "Total Earnings",
-      value: `$${sharedSubscriptions.reduce((acc, sub) => acc + (sub.total_shares_count * sub.price_per_hour * 24), 0).toFixed(2)}`,
+      value: `$${sharedSubscriptions.reduce((acc: any, sub: any) => acc + (sub.total_shares_count * sub.price_per_hour * 24), 0).toFixed(2)}`,
       icon: TrendingUp,
       color: "info" as const,
     },
     {
       title: "Total Spent",
-      value: `$${transactions.filter(t => t.transaction_type === 'purchase').reduce((acc, t) => acc + t.amount, 0).toFixed(2)}`,
+      value: `$${transactions
+        .filter((t: Transaction) => t.transaction_type === "purchase")
+        .reduce((acc: number, t: Transaction) => acc + t.amount, 0)
+        .toFixed(2)}`,
       icon: DollarSign,
       color: "warning" as const,
     },
@@ -206,7 +210,12 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-300">Active Users</span>
                     <span className="text-lg font-bold text-[#00D9B4]">
-                      {sharedSubscriptions.reduce((acc, sub) => acc + sub.total_shares_count, 0)}
+                      {sharedSubscriptions.reduce(
+                        (acc: number, sub: SharedSubscription) =>
+                          acc + sub.total_shares_count,
+                        0
+                      )}
+
                     </span>
                   </div>
                   <Link

@@ -60,7 +60,7 @@ class ApiClient {
     };
 
     if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
+      (headers as any)["Authorization"] = `Bearer ${token}`;
     }
 
     try {
@@ -72,7 +72,7 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || `HTTP ${response.status}`);
+        throw new Error(data.error || data.message || `HTTP ${response.status}`);
       }
 
       return data;
@@ -81,14 +81,13 @@ class ApiClient {
     }
   }
 
-  // Auth Endpoints
+  //  Auth Endpoints 
   async login(credentials: LoginCredentials): Promise<{ user: User; token: string }> {
     const response = await this.request<AuthResponse>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify(credentials),
     });
     
-    // Store token
     if (response.data.token && typeof window !== "undefined") {
       localStorage.setItem("token", response.data.token);
     }
@@ -102,7 +101,6 @@ class ApiClient {
       body: JSON.stringify(data),
     });
     
-    // Store token
     if (response.data.token && typeof window !== "undefined") {
       localStorage.setItem("token", response.data.token);
     }
@@ -115,7 +113,6 @@ class ApiClient {
       method: "POST",
     });
     
-    // Remove token
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
     }
@@ -126,7 +123,7 @@ class ApiClient {
     return response.data!;
   }
 
-  // User Endpoints
+  //  User Endpoints 
   async getUserProfile(): Promise<User> {
     const response = await this.request<ApiResponse<User>>("/api/users/profile");
     return response.data!;
@@ -174,7 +171,7 @@ class ApiClient {
     return response.data!;
   }
 
-  // Platform Endpoints
+  //  Platform Endpoints 
   async getPlatforms(activeOnly?: boolean): Promise<any[]> {
     const query = activeOnly ? "?active_only=true" : "";
     const response = await this.request<ApiResponse<any[]>>(`/api/platforms${query}`);
@@ -224,7 +221,7 @@ class ApiClient {
     return response.data!;
   }
 
-  // Subscription Endpoints
+  //  Subscription Endpoints 
   async getSubscriptions(filters?: {
     platform_id?: number;
     verified_only?: boolean;
@@ -296,7 +293,7 @@ class ApiClient {
     return response.data!;
   }
 
-  // Reports Endpoints
+  //  Reports Endpoints 
   async createReport(sharedSubscriptionId: number, reason: string): Promise<any> {
     const response = await this.request<ApiResponse<any>>("/api/reports", {
       method: "POST",
@@ -336,7 +333,7 @@ class ApiClient {
     return response.data!;
   }
 
-  // Wallet Endpoints
+  //  Wallet Endpoints 
   async createTopupRequest(data: {
     amount: number;
     transaction_id: string;
@@ -367,7 +364,7 @@ class ApiClient {
     return response.data!;
   }
 
-  // Admin - Topup Management
+  //  Admin - Topup Management 
   async getAdminTopupRequests(status?: string, limit?: number): Promise<any[]> {
     const params = new URLSearchParams();
     if (status) params.append("status", status);
@@ -393,7 +390,7 @@ class ApiClient {
     return response.data!;
   }
 
-  // Admin Endpoints
+  //  Admin Endpoints 
   async getDashboardStats(): Promise<any> {
     const response = await this.request<ApiResponse<any>>("/api/admin/dashboard-stats");
     return response.data!;

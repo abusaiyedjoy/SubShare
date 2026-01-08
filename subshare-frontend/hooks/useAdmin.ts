@@ -1,57 +1,75 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
-import { queryKeys } from "@/lib/queryClient";
 
 export function useAdmin() {
   const queryClient = useQueryClient();
 
-  // ==================== Topup Requests ====================
+  //  Dashboard Stats 
   const { 
-    data: topupRequestsData, 
+    data: stats, 
+    isLoading: isLoadingStats,
+    refetch: refetchStats 
+  } = useQuery({
+    queryKey: ["adminDashboardStats"],
+    queryFn: () => apiClient.getDashboardStats(),
+    refetchInterval: 60000, // Refetch every minute
+    select: (data) => data || {
+      totalUsers: 0,
+      totalSubscriptions: 0,
+      totalRevenue: 0,
+      pendingTopups: 0,
+      pendingVerifications: 0,
+      activeAccesses: 0,
+      totalCommission: 0,
+    },
+  });
+
+  //  System Stats 
+  const { data: systemStats, isLoading: isLoadingSystemStats } = useQuery({
+    queryKey: ["adminSystemStats"],
+    queryFn: () => apiClient.getSystemStats(),
+  });
+
+  //  Topup Requests 
+  const { 
+    data: topupRequests, 
     isLoading: isLoadingTopupRequests,
     refetch: refetchTopupRequests 
   } = useQuery({
-    queryKey: queryKeys.adminTopupRequests,
+    queryKey: ["adminTopupRequests"],
     queryFn: () => apiClient.getAdminTopupRequests(),
+    select: (data) => data || [],
   });
 
   const approveTopupMutation = useMutation({
-    mutationFn: ({ 
-      id, 
-      notes 
-    }: { 
-      id: number; 
-      notes?: string 
-    }) => apiClient.approveTopupRequest(id, notes),
+    mutationFn: ({ id, notes }: { id: number; notes?: string }) => 
+      apiClient.approveTopupRequest(id, notes),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminTopupRequests });
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminTransactions });
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminDashboardStats });
+      queryClient.invalidateQueries({ queryKey: ["adminTopupRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["adminTransactions"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDashboardStats"] });
+      queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
     },
   });
 
   const rejectTopupMutation = useMutation({
-    mutationFn: ({ 
-      id, 
-      notes 
-    }: { 
-      id: number; 
-      notes: string 
-    }) => apiClient.rejectTopupRequest(id, notes),
+    mutationFn: ({ id, notes }: { id: number; notes?: string }) => 
+      apiClient.rejectTopupRequest(id, notes),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminTopupRequests });
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminDashboardStats });
+      queryClient.invalidateQueries({ queryKey: ["adminTopupRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDashboardStats"] });
     },
   });
 
-  // ==================== Subscription Verifications ====================
+  //  Subscription Verifications 
   const { 
-    data: pendingVerificationsData, 
+    data: pendingVerifications, 
     isLoading: isLoadingVerifications,
     refetch: refetchVerifications 
   } = useQuery({
-    queryKey: queryKeys.adminPendingVerifications,
+    queryKey: ["adminPendingVerifications"],
     queryFn: () => apiClient.getPendingVerifications(),
+    select: (data) => data || [],
   });
 
   const verifySubscriptionMutation = useMutation({
@@ -63,22 +81,23 @@ export function useAdmin() {
       id: number; 
       is_verified: boolean; 
       verification_note?: string 
-    }) => apiClient.verifySubscription(id, { is_verified, verification_note }),
+    }) => apiClient.verifySubscription(id, is_verified, verification_note),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminPendingVerifications });
-      queryClient.invalidateQueries({ queryKey: queryKeys.subscriptions() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminDashboardStats });
+      queryClient.invalidateQueries({ queryKey: ["adminPendingVerifications"] });
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDashboardStats"] });
     },
   });
 
-  // ==================== Reports ====================
+  //  Reports 
   const { 
-    data: reportsData, 
+    data: reports, 
     isLoading: isLoadingReports,
     refetch: refetchReports 
   } = useQuery({
-    queryKey: queryKeys.adminReports,
-    queryFn: () => apiClient.getAdminReports(),
+    queryKey: ["adminReports"],
+    queryFn: () => apiClient.getAllReports(),
+    select: (data) => data || [],
   });
 
   const resolveReportMutation = useMutation({
@@ -90,85 +109,88 @@ export function useAdmin() {
       id: number; 
       status: "resolved" | "dismissed"; 
       resolution_notes?: string 
-    }) => apiClient.resolveReport(id, { status, resolution_notes }),
+    }) => apiClient.resolveReport(id, status, resolution_notes),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminReports });
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminDashboardStats });
+      queryClient.invalidateQueries({ queryKey: ["adminReports"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDashboardStats"] });
     },
   });
 
-  // ==================== Transactions ====================
+  //  Transactions 
   const { 
-    data: transactionsData, 
+    data: transactions, 
     isLoading: isLoadingTransactions,
     refetch: refetchTransactions 
   } = useQuery({
-    queryKey: queryKeys.adminTransactions,
+    queryKey: ["adminTransactions"],
     queryFn: () => apiClient.getAdminTransactions(),
+    select: (data) => data || [],
   });
 
-  // ==================== Users ====================
+  //  Users 
   const { 
-    data: usersData, 
+    data: users, 
     isLoading: isLoadingUsers,
     refetch: refetchUsers 
   } = useQuery({
-    queryKey: queryKeys.adminUsers,
+    queryKey: ["adminUsers"],
     queryFn: () => apiClient.getAdminUsers(),
+    select: (data) => data || [],
   });
 
   const adjustUserBalanceMutation = useMutation({
     mutationFn: ({ 
       id, 
       amount, 
-      type, 
       notes 
     }: { 
       id: number; 
       amount: number; 
-      type: "add" | "subtract"; 
-      notes?: string 
-    }) => apiClient.adjustUserBalance(id, { amount, type, notes }),
+      notes: string 
+    }) => apiClient.adjustUserBalance(id, amount, notes),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminUsers });
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminTransactions });
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminDashboardStats });
+      queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
+      queryClient.invalidateQueries({ queryKey: ["adminTransactions"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDashboardStats"] });
     },
   });
 
-  // ==================== Settings ====================
+  const updateUserRoleMutation = useMutation({
+    mutationFn: ({ id, role }: { id: number; role: 'user' | 'admin' }) => 
+      apiClient.updateUserRole(id, role),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
+    },
+  });
+
+  //  Settings 
   const { 
-    data: settingsData, 
+    data: settings, 
     isLoading: isLoadingSettings,
     refetch: refetchSettings 
   } = useQuery({
-    queryKey: queryKeys.adminSettings,
-    queryFn: () => apiClient.getAdminSettings(),
+    queryKey: ["adminSettings"],
+    queryFn: () => apiClient.getPlatformSettings(),
+    select: (data) => data || [],
   });
 
   const updateSettingsMutation = useMutation({
-    mutationFn: (data: {
-      settings: Array<{ key: string; value: string }>;
-    }) => apiClient.updateAdminSettings(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminSettings });
+    mutationFn: (data: { settings: Array<{ key: string; value: string }> }) => {
+      // Update each setting individually
+      return Promise.all(
+        data.settings.map(setting => 
+          apiClient.updatePlatformSetting(setting.key, setting.value)
+        )
+      );
     },
-  });
-
-  // ==================== Dashboard Stats ====================
-  const { 
-    data: statsData, 
-    isLoading: isLoadingStats,
-    refetch: refetchStats 
-  } = useQuery({
-    queryKey: queryKeys.adminDashboardStats,
-    queryFn: () => apiClient.getDashboardStats(),
-    refetchInterval: 60000, // Refetch every minute
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminSettings"] });
+    },
   });
 
   // Helper to get setting by key
   const getSettingByKey = (key: string) => {
-    return settingsData?.data?.find(s => s.key === key);
+    return settings?.find((s: any) => s.key === key);
   };
 
   // Helper to get commission percentage
@@ -178,8 +200,15 @@ export function useAdmin() {
   };
 
   return {
+    // Dashboard Stats
+    stats,
+    systemStats,
+    isLoadingStats,
+    isLoadingSystemStats,
+    refetchStats,
+
     // Topup Requests
-    topupRequests: topupRequestsData?.data || [],
+    topupRequests,
     isLoadingTopupRequests,
     approveTopup: approveTopupMutation.mutateAsync,
     rejectTopup: rejectTopupMutation.mutateAsync,
@@ -188,51 +217,40 @@ export function useAdmin() {
     refetchTopupRequests,
 
     // Verifications
-    pendingVerifications: pendingVerificationsData?.data || [],
+    pendingVerifications,
     isLoadingVerifications,
     verifySubscription: verifySubscriptionMutation.mutateAsync,
     verifySubscriptionMutation,
     refetchVerifications,
 
     // Reports
-    reports: reportsData?.data || [],
+    reports,
     isLoadingReports,
     resolveReport: resolveReportMutation.mutateAsync,
     resolveReportMutation,
     refetchReports,
 
     // Transactions
-    transactions: transactionsData?.data || [],
+    transactions,
     isLoadingTransactions,
     refetchTransactions,
 
     // Users
-    users: usersData?.data || [],
+    users,
     isLoadingUsers,
     adjustUserBalance: adjustUserBalanceMutation.mutateAsync,
+    updateUserRole: updateUserRoleMutation.mutateAsync,
     adjustUserBalanceMutation,
+    updateUserRoleMutation,
     refetchUsers,
 
     // Settings
-    settings: settingsData?.data || [],
+    settings,
     isLoadingSettings,
     updateSettings: updateSettingsMutation.mutateAsync,
     updateSettingsMutation,
     refetchSettings,
     getSettingByKey,
     getCommissionPercentage,
-
-    // Dashboard Stats
-    stats: statsData?.data || {
-      totalUsers: 0,
-      totalSubscriptions: 0,
-      totalRevenue: 0,
-      pendingTopups: 0,
-      pendingVerifications: 0,
-      activeAccesses: 0,
-      totalCommission: 0,
-    },
-    isLoadingStats,
-    refetchStats,
   };
 }
