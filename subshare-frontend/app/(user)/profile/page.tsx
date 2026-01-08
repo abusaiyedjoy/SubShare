@@ -121,7 +121,7 @@ export default function ProfilePage() {
           <div className="lg:col-span-1">
             <div className="rounded-2xl bg-white/5 p-6 border border-white/10 text-center">
               <div className="relative inline-block mb-4">
-                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-primary text-4xl font-bold text-[#0A1628]">
+                <div className="flex h-24 w-24 items-center justify-center rounded-full gradient-primary text-4xl font-bold text-[#0A1628]">
                   {user.name?.charAt(0).toUpperCase()}
                 </div>
                 <button className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur-sm hover:bg-white/20 transition-colors">
@@ -130,7 +130,7 @@ export default function ProfilePage() {
               </div>
               <h2 className="text-xl font-bold text-white mb-1">{user.name}</h2>
               <p className="text-sm text-gray-400 mb-4">{user.email}</p>
-              
+
               <div className="space-y-2">
                 <div className="flex items-center justify-between rounded-lg bg-white/5 p-3 border border-white/10">
                   <span className="text-sm text-gray-400">Role</span>
@@ -180,7 +180,7 @@ export default function ProfilePage() {
                     <button
                       onClick={handleSave}
                       disabled={updateProfileMutation.isPending}
-                      className="flex items-center gap-2 rounded-lg bg-gradient-primary px-4 py-2 text-sm font-semibold text-gray-50 transition-all hover:shadow-glow-primary hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                      className="flex items-center gap-2 rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-gray-50 transition-all hover:shadow-glow-primary hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
                       {updateProfileMutation.isPending ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -232,7 +232,7 @@ export default function ProfilePage() {
                   </label>
                   <input
                     type="text"
-                   value={(user as any).created_at ? formatDate((user as any).created_at) : "N/A"}
+                    value={(user as any).created_at ? formatDate((user as any).created_at) : "N/A"}
                     disabled
                     className="h-12 w-full rounded-lg bg-white/5 px-4 text-white border border-white/10 opacity-50"
                   />
@@ -266,7 +266,7 @@ export default function ProfilePage() {
                     <p className="font-medium text-white mb-1">Password</p>
                     <p className="text-sm text-gray-400">Keep your account secure</p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setIsChangingPassword(true)}
                     className="flex items-center gap-2 rounded-lg bg-white/5 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-white/10 border border-white/10"
                   >
@@ -323,7 +323,7 @@ export default function ProfilePage() {
                     <button
                       onClick={handlePasswordChange}
                       disabled={updatePasswordMutation.isPending}
-                      className="flex items-center gap-2 rounded-lg bg-gradient-primary px-4 py-2 text-sm font-semibold text-gray-50 transition-all hover:shadow-glow-primary hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                      className="flex items-center gap-2 rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-gray-50 transition-all hover:shadow-glow-primary hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
                       {updatePasswordMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                       Update Password

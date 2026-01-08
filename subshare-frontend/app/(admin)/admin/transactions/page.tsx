@@ -5,9 +5,9 @@ import { TransactionList } from "@/components/shared/TransactionList";
 import { LoadingSpinner } from "@/components/shared/LoadingSpenner";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useState } from "react";
-import { 
-  DollarSign, 
-  TrendingUp, 
+import {
+  DollarSign,
+  TrendingUp,
   TrendingDown,
   Download,
   Filter,
@@ -24,8 +24,8 @@ export default function AdminTransactionsPage() {
 
   const filteredTransactions = transactions?.filter(t => filterType === "all" || t.transaction_type === filterType)
     .filter(t => filterStatus === "all" || t.status === filterStatus)
-    .filter(t => 
-      !searchQuery || 
+    .filter(t =>
+      !searchQuery ||
       t.user_id.toString().includes(searchQuery) ||
       (t.reference_id && t.reference_id.toLowerCase().includes(searchQuery.toLowerCase()))
     );
@@ -58,7 +58,7 @@ export default function AdminTransactionsPage() {
             <h1 className="text-3xl font-bold text-white mb-2">All Transactions</h1>
             <p className="text-gray-400">Monitor all platform transactions</p>
           </div>
-          <button className="flex items-center gap-2 rounded-lg bg-gradient-primary px-6 py-3 font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105">
+          <button className="flex items-center gap-2 rounded-lg gradient-primary px-6 py-3 font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105">
             <Download className="h-5 w-5" />
             Export CSV
           </button>

@@ -76,6 +76,11 @@ export function Sidebar({ isOpen = true }: SidebarProps) {
             href: "/admin/verifications",
             icon: FileCheck,
         },
+        {  
+            label: "Platforms",
+            href: "/admin/platforms",
+            icon: Share2,
+        },
         {
             label: "Reports",
             href: "/admin/reports",

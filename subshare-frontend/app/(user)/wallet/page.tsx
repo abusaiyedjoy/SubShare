@@ -13,17 +13,17 @@ import { TopupForm } from "@/components/forms/TopUpForm";
 import { TopupRequest, Transaction } from "@/types";
 
 export default function WalletPage() {
-  const { 
-    transactions, 
-    topupRequests, 
-    isLoadingTransactions, 
-    isLoadingTopupRequests 
+  const {
+    transactions,
+    topupRequests,
+    isLoadingTransactions,
+    isLoadingTopupRequests
   } = useWallet();
   const [showTopupModal, setShowTopupModal] = useState(false);
   const [filterType, setFilterType] = useState<string>("all");
 
-  const filteredTransactions = filterType === "all" 
-    ? transactions 
+  const filteredTransactions = filterType === "all"
+    ? transactions
     : transactions.filter((t: Transaction) => t.transaction_type === filterType);
 
   const getStatusIcon = (status: string) => {
@@ -48,7 +48,7 @@ export default function WalletPage() {
           </div>
           <button
             onClick={() => setShowTopupModal(true)}
-            className="flex items-center gap-2 rounded-lg bg-gradient-primary px-6 py-3 font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105"
+            className="flex items-center gap-2 rounded-lg gradient-primary px-6 py-3 font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105"
           >
             <Plus className="h-5 w-5" />
             Add Funds
@@ -90,14 +90,14 @@ export default function WalletPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Wallet Balance Card */}
-            <WalletBalance 
+            <WalletBalance
               showAddButton={false}
             />
 
             {/* Topup Requests */}
             <div className="rounded-2xl bg-white/5 p-6 border border-white/10">
               <h2 className="text-xl font-bold text-white mb-4">Topup Requests</h2>
-              
+
               {isLoadingTopupRequests ? (
                 <div className="space-y-3">
                   {[...Array(3)].map((_, i) => (
@@ -125,8 +125,8 @@ export default function WalletPage() {
                             request.status === "approved"
                               ? "success"
                               : request.status === "rejected"
-                              ? "error"
-                              : "warning"
+                                ? "error"
+                                : "warning"
                           }
                         >
                           <span className="flex items-center gap-1">

@@ -12,9 +12,9 @@ import { formatDateTime } from "@/lib/utils";
 import { EmptyState } from "@/components/shared/EmptyStats";
 
 export default function AdminVerificationsPage() {
-  const { 
-    pendingVerifications, 
-    isLoadingVerifications, 
+  const {
+    pendingVerifications,
+    isLoadingVerifications,
     verifySubscription,
     verifySubscriptionMutation
   } = useAdmin();
@@ -93,7 +93,7 @@ export default function AdminVerificationsPage() {
               <span className="text-sm text-gray-400">Avg. Price/Day</span>
             </div>
             <p className="text-3xl font-bold text-[#00D9B4]">
-              ${(pendingVerifications?.length || 0) > 0 
+              ${(pendingVerifications?.length || 0) > 0
                 ? (pendingVerifications?.reduce((acc, sub) => acc + (sub.price_per_hour * 24), 0) / (pendingVerifications?.length || 1)).toFixed(2)
                 : "0.00"}
             </p>
@@ -116,7 +116,7 @@ export default function AdminVerificationsPage() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-4">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-primary text-2xl font-bold text-[#0A1628]">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-xl gradient-primary text-2xl font-bold text-[#0A1628]">
                       {subscription.platform?.name?.charAt(0) || "S"}
                     </div>
                     <div>
@@ -176,7 +176,7 @@ export default function AdminVerificationsPage() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => openVerificationModal(subscription)}
-                    className="flex-1 flex items-center justify-center gap-2 h-10 rounded-lg bg-gradient-primary font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105"
+                    className="flex-1 flex items-center justify-center gap-2 h-10 rounded-lg gradient-primary font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105"
                   >
                     <Eye className="h-4 w-4" />
                     Review & Verify

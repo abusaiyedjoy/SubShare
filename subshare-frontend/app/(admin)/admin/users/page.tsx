@@ -7,9 +7,9 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpenner";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useToast } from "@/hooks/useToast";
 import { useState } from "react";
-import { 
-  Users, 
-  Search, 
+import {
+  Users,
+  Search,
   Filter,
   DollarSign,
   Eye,
@@ -20,9 +20,9 @@ import { formatDate } from "@/lib/utils";
 import { EmptyState } from "@/components/shared/EmptyStats";
 
 export default function AdminUsersPage() {
-  const { 
-    users, 
-    isLoadingUsers, 
+  const {
+    users,
+    isLoadingUsers,
     adjustUserBalance,
     adjustUserBalanceMutation
   } = useAdmin();
@@ -67,8 +67,8 @@ export default function AdminUsersPage() {
   };
 
   const filteredUsers = users?.filter(u => roleFilter === "all" || u.role === roleFilter)
-    .filter(u => 
-      !searchQuery || 
+    .filter(u =>
+      !searchQuery ||
       u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       u.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -177,7 +177,7 @@ export default function AdminUsersPage() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-primary text-xl font-bold text-[#0A1628]">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full gradient-primary text-xl font-bold text-[#0A1628]">
                       {user.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -325,17 +325,16 @@ export default function AdminUsersPage() {
               <button
                 onClick={handleAdjustBalance}
                 disabled={adjustUserBalanceMutation.isPending || !amount}
-                className={`flex-1 h-12 rounded-lg font-semibold text-white transition-all ${
-                  adjustmentType === "add"
+                className={`flex-1 h-12 rounded-lg font-semibold text-white transition-all ${adjustmentType === "add"
                     ? "bg-green-500 hover:bg-green-600"
                     : "bg-red-500 hover:bg-red-600"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 {adjustUserBalanceMutation.isPending
                   ? "Processing..."
                   : adjustmentType === "add"
-                  ? "Add Balance"
-                  : "Deduct Balance"}
+                    ? "Add Balance"
+                    : "Deduct Balance"}
               </button>
             </div>
           </div>

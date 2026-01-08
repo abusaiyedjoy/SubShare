@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
+import { useToast } from "./useToast";
 
 interface SubscriptionFilters {
   platform_id?: number;
@@ -9,47 +10,63 @@ interface SubscriptionFilters {
 
 export function useSubscriptions(filters?: SubscriptionFilters) {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  // Get all subscriptions with filters
+  // Get all subscriptions with filters (marketplace)
   const { 
-    data: subscriptionsData, 
+    data: subscriptions = [], 
     isLoading: isLoadingSubscriptions,
     refetch: refetchSubscriptions 
   } = useQuery({
     queryKey: ["subscriptions", filters],
     queryFn: () => apiClient.getSubscriptions(filters),
+    staleTime: 1000 * 60 * 1, // 1 minute
   });
 
   // Get single subscription
-  const useSubscription = (id: number) => {
+  const useSubscription = (id: number, enabled: boolean = true) => {
     return useQuery({
       queryKey: ["subscription", id],
       queryFn: () => apiClient.getSubscription(id),
-      enabled: !!id && id > 0,
+      enabled: enabled && !!id && id > 0,
+      staleTime: 1000 * 60 * 2,
     });
   };
 
-  // Get my subscriptions (accessed)
+  // Get my subscriptions (subscriptions I'm accessing)
   const { 
-    data: mySubscriptionsData, 
+    data: mySubscriptions = [], 
     isLoading: isLoadingMySubscriptions,
     refetch: refetchMySubscriptions 
   } = useQuery({
     queryKey: ["mySubscriptions"],
     queryFn: () => apiClient.getMySubscriptions(),
+    staleTime: 1000 * 60 * 2, // 2 minutes
   });
 
-  // Get shared subscriptions (created by me)
+  // Get shared subscriptions (subscriptions I'm sharing)
   const { 
-    data: sharedSubscriptionsData, 
+    data: sharedSubscriptions = [], 
     isLoading: isLoadingSharedSubscriptions,
     refetch: refetchSharedSubscriptions 
   } = useQuery({
     queryKey: ["sharedSubscriptions"],
     queryFn: () => apiClient.getSharedSubscriptions(),
+    staleTime: 1000 * 60 * 2, // 2 minutes
   });
 
-  // Create subscription mutation
+  // Get subscription credentials
+  const useSubscriptionCredentials = (id: number, enabled: boolean = true) => {
+    return useQuery({
+      queryKey: ["subscriptionCredentials", id],
+      queryFn: () => apiClient.getSubscriptionCredentials(id),
+      enabled: enabled && !!id && id > 0,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: false,
+    });
+  };
+
+  // Create subscription mutation (POST /api/subscriptions)
   const createSubscriptionMutation = useMutation({
     mutationFn: (data: {
       platform_id: number;
@@ -61,10 +78,14 @@ export function useSubscriptions(filters?: SubscriptionFilters) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
       queryClient.invalidateQueries({ queryKey: ["sharedSubscriptions"] });
+      toast.success("Subscription shared successfully! Waiting for admin verification.");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to share subscription");
     },
   });
 
-  // Update subscription mutation
+  // Update subscription mutation (PUT /api/subscriptions/:id)
   const updateSubscriptionMutation = useMutation({
     mutationFn: ({ 
       id, 
@@ -82,19 +103,27 @@ export function useSubscriptions(filters?: SubscriptionFilters) {
       queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
       queryClient.invalidateQueries({ queryKey: ["subscription", variables.id] });
       queryClient.invalidateQueries({ queryKey: ["sharedSubscriptions"] });
+      toast.success("Subscription updated successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update subscription");
     },
   });
 
-  // Delete subscription mutation
+  // Delete subscription mutation (DELETE /api/subscriptions/:id)
   const deleteSubscriptionMutation = useMutation({
     mutationFn: (id: number) => apiClient.deleteSubscription(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
       queryClient.invalidateQueries({ queryKey: ["sharedSubscriptions"] });
+      toast.success("Subscription deleted successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to delete subscription");
     },
   });
 
-  // Unlock subscription mutation
+  // Unlock subscription mutation (POST /api/subscriptions/:id/unlock)
   const unlockSubscriptionMutation = useMutation({
     mutationFn: ({ 
       id, 
@@ -107,20 +136,15 @@ export function useSubscriptions(filters?: SubscriptionFilters) {
       queryClient.invalidateQueries({ queryKey: ["subscription", variables.id] });
       queryClient.invalidateQueries({ queryKey: ["mySubscriptions"] });
       queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
-      queryClient.invalidateQueries({ queryKey: ["walletTransactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      toast.success("Subscription unlocked successfully!");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to unlock subscription");
     },
   });
 
-  // Get subscription credentials
-  const useSubscriptionCredentials = (id: number, hasAccess: boolean) => {
-    return useQuery({
-      queryKey: ["subscriptionCredentials", id],
-      queryFn: () => apiClient.getSubscriptionCredentials(id),
-      enabled: !!id && hasAccess,
-    });
-  };
-
-  // Report subscription mutation
+  // Report subscription mutation (POST /api/subscriptions/:id/report)
   const reportSubscriptionMutation = useMutation({
     mutationFn: ({ 
       id, 
@@ -131,30 +155,66 @@ export function useSubscriptions(filters?: SubscriptionFilters) {
     }) => apiClient.createReport(id, reason),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["subscription", variables.id] });
+      toast.success("Report submitted successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to submit report");
     },
   });
 
+  // Helper functions
+  const createSubscription = (data: any) => {
+    return createSubscriptionMutation.mutateAsync(data);
+  };
+
+  const updateSubscription = (id: number, data: any) => {
+    return updateSubscriptionMutation.mutateAsync({ id, data });
+  };
+
+  const deleteSubscription = (id: number) => {
+    return deleteSubscriptionMutation.mutateAsync(id);
+  };
+
+  const unlockSubscription = (params: { id: number; hours: number }) => {
+    return unlockSubscriptionMutation.mutateAsync(params);
+  };
+
+  const reportSubscription = (params: { id: number; reason: string }) => {
+    return reportSubscriptionMutation.mutateAsync(params);
+  };
+
   return {
-    subscriptions: subscriptionsData || [],
-    mySubscriptions: mySubscriptionsData || [],
-    sharedSubscriptions: sharedSubscriptionsData || [],
+    // Data
+    subscriptions,
+    mySubscriptions,
+    sharedSubscriptions,
+
+    // Loading states
     isLoadingSubscriptions,
     isLoadingMySubscriptions,
     isLoadingSharedSubscriptions,
+
+    // Refetch functions
+    refetchSubscriptions,
+    refetchMySubscriptions,
+    refetchSharedSubscriptions,
+
+    // Query hooks
     useSubscription,
     useSubscriptionCredentials,
-    createSubscription: createSubscriptionMutation.mutateAsync,
-    updateSubscription: updateSubscriptionMutation.mutateAsync,
-    deleteSubscription: deleteSubscriptionMutation.mutateAsync,
-    unlockSubscription: unlockSubscriptionMutation.mutateAsync,
-    reportSubscription: reportSubscriptionMutation.mutateAsync,
+
+    // Mutation functions
+    createSubscription,
+    updateSubscription,
+    deleteSubscription,
+    unlockSubscription,
+    reportSubscription,
+
+    // Mutation objects (for isPending, etc.)
     createSubscriptionMutation,
     updateSubscriptionMutation,
     deleteSubscriptionMutation,
     unlockSubscriptionMutation,
     reportSubscriptionMutation,
-    refetchSubscriptions,
-    refetchMySubscriptions,
-    refetchSharedSubscriptions,
   };
 }

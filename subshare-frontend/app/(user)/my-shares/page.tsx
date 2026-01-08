@@ -5,13 +5,13 @@ import { Badge } from "@/components/shared/Badge";
 import { Modal } from "@/components/shared/Modal";
 import { useToast } from "@/hooks/useToast";
 import { useState } from "react";
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Users, 
-  DollarSign, 
-  Eye, 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Users,
+  DollarSign,
+  Eye,
   EyeOff,
   CheckCircle,
   Clock,
@@ -69,7 +69,7 @@ export default function MySharesPage() {
           </div>
           <Link
             href="/share-subscription"
-            className="flex items-center gap-2 rounded-lg bg-gradient-primary px-6 py-3 font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105"
+            className="flex items-center gap-2 rounded-lg gradient-primary px-6 py-3 font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105"
           >
             <Plus className="h-5 w-5" />
             Share New
@@ -135,7 +135,7 @@ export default function MySharesPage() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-4">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-primary text-2xl font-bold text-[#0A1628]">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-xl gradient-primary text-2xl font-bold text-[#0A1628]">
                       {subscription.platform?.name?.charAt(0) || "S"}
                     </div>
                     <div>

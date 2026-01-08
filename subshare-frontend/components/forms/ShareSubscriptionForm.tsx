@@ -6,7 +6,6 @@ import { useToast } from "@/hooks/useToast";
 import { DollarSign, Eye, EyeOff, Loader2, Calendar } from "lucide-react";
 import { useSubscriptions } from "@/hooks/useSubscription";
 import { usePlatforms } from "@/hooks/usePlatform";
-import { SubscriptionPlatform } from "@/types";
 
 interface ShareSubscriptionFormProps {
     onSuccess?: () => void;
@@ -14,8 +13,8 @@ interface ShareSubscriptionFormProps {
 }
 
 export function ShareSubscriptionForm({ onSuccess, onCancel }: ShareSubscriptionFormProps) {
-    const { createSubscriptionMutation } = useSubscriptions();
-    const { platforms, isLoadingPlatforms } = usePlatforms();
+    const { createSubscription, createSubscriptionMutation } = useSubscriptions();
+    const { activePlatforms, isLoadingPlatforms } = usePlatforms();
     const { toast } = useToast();
     const [showPassword, setShowPassword] = useState(false);
 
@@ -28,8 +27,26 @@ export function ShareSubscriptionForm({ onSuccess, onCancel }: ShareSubscription
             expires_at: "",
         },
         onSubmit: async ({ value }) => {
+            // Validation
+            if (!value.platform_id) {
+                toast.error("Please select a platform");
+                return;
+            }
+            if (!value.credentials_username.trim()) {
+                toast.error("Username is required");
+                return;
+            }
+            if (!value.credentials_password.trim()) {
+                toast.error("Password is required");
+                return;
+            }
+            if (!value.price_per_hour || parseFloat(value.price_per_hour) <= 0) {
+                toast.error("Price must be greater than 0");
+                return;
+            }
+
             try {
-                await createSubscriptionMutation.mutateAsync({
+                await createSubscription({
                     platform_id: parseInt(value.platform_id),
                     credentials_username: value.credentials_username,
                     credentials_password: value.credentials_password,
@@ -67,7 +84,7 @@ export function ShareSubscriptionForm({ onSuccess, onCancel }: ShareSubscription
                             htmlFor="platform_id"
                             className="mb-2 block text-sm font-medium text-gray-200"
                         >
-                            Subscription Platform
+                            Subscription Platform <span className="text-red-400">*</span>
                         </label>
                         <select
                             id="platform_id"
@@ -76,15 +93,22 @@ export function ShareSubscriptionForm({ onSuccess, onCancel }: ShareSubscription
                             onChange={(e) => field.handleChange(e.target.value)}
                             required
                             disabled={isLoadingPlatforms}
-                            className="h-12 w-full rounded-lg bg-white/5 px-4 text-white transition-all border border-white/10 focus:bg-white/10 focus:border-[#00D9B4] disabled:opacity-50"
+                            className="h-12 w-full rounded-lg bg-white/5 px-4 text-white transition-all border border-white/10 focus:bg-white/10 focus:border-[#00D9B4] disabled:opacity-50 outline-none"
                         >
-                            <option value="" className="bg-[#0A1628]">Select a platform</option>
-                            {platforms.map((platform : SubscriptionPlatform) => (
+                            <option value="" className="bg-[#0A1628]">
+                                {isLoadingPlatforms ? "Loading platforms..." : "Select a platform"}
+                            </option>
+                            {activePlatforms.map((platform: any) => (
                                 <option key={platform.id} value={platform.id} className="bg-[#0A1628]">
                                     {platform.name}
                                 </option>
                             ))}
                         </select>
+                        {activePlatforms.length === 0 && !isLoadingPlatforms && (
+                            <p className="mt-1 text-xs text-yellow-400">
+                                No active platforms available. Please contact admin.
+                            </p>
+                        )}
                     </div>
                 )}
             </form.Field>
@@ -97,7 +121,7 @@ export function ShareSubscriptionForm({ onSuccess, onCancel }: ShareSubscription
                             htmlFor="credentials_username"
                             className="mb-2 block text-sm font-medium text-gray-200"
                         >
-                            Account Username/Email
+                            Account Username/Email <span className="text-red-400">*</span>
                         </label>
                         <input
                             id="credentials_username"
@@ -107,7 +131,7 @@ export function ShareSubscriptionForm({ onSuccess, onCancel }: ShareSubscription
                             onChange={(e) => field.handleChange(e.target.value)}
                             placeholder="Enter account username or email"
                             required
-                            className="h-12 w-full rounded-lg bg-white/5 px-4 text-white placeholder-gray-400 transition-all border border-white/10 focus:bg-white/10 focus:border-[#00D9B4]"
+                            className="h-12 w-full rounded-lg bg-white/5 px-4 text-white placeholder-gray-400 transition-all border border-white/10 focus:bg-white/10 focus:border-[#00D9B4] outline-none"
                         />
                     </div>
                 )}
@@ -121,7 +145,7 @@ export function ShareSubscriptionForm({ onSuccess, onCancel }: ShareSubscription
                             htmlFor="credentials_password"
                             className="mb-2 block text-sm font-medium text-gray-200"
                         >
-                            Account Password
+                            Account Password <span className="text-red-400">*</span>
                         </label>
                         <div className="relative">
                             <input
@@ -132,7 +156,7 @@ export function ShareSubscriptionForm({ onSuccess, onCancel }: ShareSubscription
                                 onChange={(e) => field.handleChange(e.target.value)}
                                 placeholder="Enter account password"
                                 required
-                                className="h-12 w-full rounded-lg bg-white/5 px-4 pr-12 text-white placeholder-gray-400 transition-all border border-white/10 focus:bg-white/10 focus:border-[#00D9B4]"
+                                className="h-12 w-full rounded-lg bg-white/5 px-4 pr-12 text-white placeholder-gray-400 transition-all border border-white/10 focus:bg-white/10 focus:border-[#00D9B4] outline-none"
                             />
                             <button
                                 type="button"
@@ -161,7 +185,7 @@ export function ShareSubscriptionForm({ onSuccess, onCancel }: ShareSubscription
                             htmlFor="price_per_hour"
                             className="mb-2 block text-sm font-medium text-gray-200"
                         >
-                            Price per Hour (USD)
+                            Price per Hour (USD) <span className="text-red-400">*</span>
                         </label>
                         <div className="relative">
                             <DollarSign className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
@@ -175,12 +199,12 @@ export function ShareSubscriptionForm({ onSuccess, onCancel }: ShareSubscription
                                 onChange={(e) => field.handleChange(e.target.value)}
                                 placeholder="0.00"
                                 required
-                                className="h-12 w-full rounded-lg bg-white/5 pl-12 pr-4 text-white placeholder-gray-400 transition-all border border-white/10 focus:bg-white/10 focus:border-[#00D9B4]"
+                                className="h-12 w-full rounded-lg bg-white/5 pl-12 pr-4 text-white placeholder-gray-400 transition-all border border-white/10 focus:bg-white/10 focus:border-[#00D9B4] outline-none"
                             />
                         </div>
                         {field.state.value && (
                             <p className="mt-1 text-xs text-[#00D9B4]">
-                                Daily price: ${calculateDailyPrice(field.state.value)}
+                                Daily price: ${calculateDailyPrice(field.state.value)} (24 hours)
                             </p>
                         )}
                     </div>
@@ -206,7 +230,7 @@ export function ShareSubscriptionForm({ onSuccess, onCancel }: ShareSubscription
                                 onBlur={field.handleBlur}
                                 onChange={(e) => field.handleChange(e.target.value)}
                                 min={new Date().toISOString().split('T')[0]}
-                                className="h-12 w-full rounded-lg bg-white/5 pl-12 pr-4 text-white transition-all border border-white/10 focus:bg-white/10 focus:border-[#00D9B4]"
+                                className="h-12 w-full rounded-lg bg-white/5 pl-12 pr-4 text-white transition-all border border-white/10 focus:bg-white/10 focus:border-[#00D9B4] outline-none"
                             />
                         </div>
                         <p className="mt-1 text-xs text-gray-400">
@@ -234,7 +258,8 @@ export function ShareSubscriptionForm({ onSuccess, onCancel }: ShareSubscription
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="flex-1 h-12 rounded-lg bg-white/5 font-medium text-white transition-all hover:bg-white/10 border border-white/10"
+                        disabled={createSubscriptionMutation.isPending}
+                        className="flex-1 h-12 rounded-lg bg-white/5 font-medium text-white transition-all hover:bg-white/10 border border-white/10 disabled:opacity-50"
                     >
                         Cancel
                     </button>
@@ -242,11 +267,11 @@ export function ShareSubscriptionForm({ onSuccess, onCancel }: ShareSubscription
                 <button
                     type="submit"
                     disabled={createSubscriptionMutation.isPending}
-                    className="flex-1 h-12 rounded-lg gradient-primary font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center"
+                    className="flex-1 h-12 rounded-lg gradient-primary font-semibold text-white transition-all hover:shadow-glow-primary hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
                 >
                     {createSubscriptionMutation.isPending ? (
                         <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            <Loader2 className="h-5 w-5 animate-spin" />
                             Sharing...
                         </>
                     ) : (

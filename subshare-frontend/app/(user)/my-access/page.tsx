@@ -4,12 +4,12 @@ import { Layout } from "@/components/layout/Layout";
 import { Badge } from "@/components/shared/Badge";
 import { useToast } from "@/hooks/useToast";
 import { useState, useEffect } from "react";
-import { 
-  Key, 
-  Copy, 
-  Eye, 
-  EyeOff, 
-  Clock, 
+import {
+  Key,
+  Copy,
+  Eye,
+  EyeOff,
+  Clock,
   AlertCircle,
   CheckCircle
 } from "lucide-react";
@@ -86,7 +86,7 @@ export default function MyAccessPage() {
           </div>
           <Link
             href="/"
-            className="flex items-center gap-2 rounded-lg bg-gradient-primary px-6 py-3 font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105"
+            className="flex items-center gap-2 rounded-lg gradient-primary px-6 py-3 font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105"
           >
             Browse More
           </Link>
@@ -145,7 +145,7 @@ export default function MyAccessPage() {
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-4">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-primary text-2xl font-bold text-[#0A1628]">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-xl gradient-primary text-2xl font-bold text-[#0A1628]">
                           {access.subscription?.platform?.name?.charAt(0) || "S"}
                         </div>
                         <div>
@@ -161,7 +161,7 @@ export default function MyAccessPage() {
 
                       <button
                         onClick={() => handleViewCredentials(access)}
-                        className="flex items-center gap-2 rounded-lg bg-gradient-primary px-4 py-2 font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105"
+                        className="flex items-center gap-2 rounded-lg gradient-primary px-4 py-2 font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105"
                       >
                         <Eye className="h-4 w-4" />
                         View Credentials
@@ -273,7 +273,7 @@ export default function MyAccessPage() {
                 <strong>Platform:</strong> {selectedSubscription?.subscription?.platform?.name}
               </p>
               <p className="text-sm text-[#00D9B4]">
-                <strong>Access until:</strong>  
+                <strong>Access until:</strong>
                 {/* {new Date(credentialsData.access_end_time).toLocaleString()} */}
               </p>
             </div>

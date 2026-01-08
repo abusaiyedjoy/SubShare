@@ -4,9 +4,9 @@ import { Layout } from "@/components/layout/Layout";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useToast } from "@/hooks/useToast";
 import { useState, useEffect } from "react";
-import { 
-  Settings as SettingsIcon, 
-  Save, 
+import {
+  Settings as SettingsIcon,
+  Save,
   RefreshCw,
   Percent,
   DollarSign,
@@ -16,15 +16,15 @@ import {
 import { LoadingSpinner } from "@/components/shared/LoadingSpenner";
 
 export default function AdminSettingsPage() {
-  const { 
-    settings, 
-    isLoadingSettings, 
+  const {
+    settings,
+    isLoadingSettings,
     updateSettings,
     updateSettingsMutation,
     refetchSettings
   } = useAdmin();
   const { toast } = useToast();
-  
+
   const [formData, setFormData] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -163,7 +163,7 @@ export default function AdminSettingsPage() {
             <button
               onClick={handleSave}
               disabled={updateSettingsMutation.isPending}
-              className="flex items-center gap-2 rounded-lg bg-gradient-primary px-6 py-3 font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="flex items-center gap-2 rounded-lg gradient-primary px-6 py-3 font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               <Save className="h-5 w-5" />
               {updateSettingsMutation.isPending ? "Saving..." : "Save Changes"}
@@ -190,7 +190,7 @@ export default function AdminSettingsPage() {
                 <div className="space-y-6">
                   {group.settings.map((setting) => {
                     const currentSetting = settings?.find(s => s.key === setting.key);
-                    
+
                     return (
                       <div key={setting.key}>
                         <label className="mb-2 block text-sm font-medium text-gray-200">

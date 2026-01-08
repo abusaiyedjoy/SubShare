@@ -125,7 +125,7 @@ export default function DashboardPage() {
                   <p className="text-gray-400 mb-4">No active subscriptions</p>
                   <Link
                     href="/"
-                    className="inline-block rounded-lg bg-gradient-primary px-6 py-2 text-sm font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105"
+                    className="inline-block rounded-lg gradient-primary px-6 py-2 text-sm font-semibold text-[#0A1628] transition-all hover:shadow-glow-primary hover:scale-105"
                   >
                     Browse Subscriptions
                   </Link>

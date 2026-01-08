@@ -69,7 +69,7 @@ export default function ShareSubscriptionPage() {
           <div className="lg:col-span-2">
             <div className="rounded-2xl bg-white/5 p-6 lg:p-8 border border-white/10">
               <div className="flex items-center gap-3 mb-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-primary">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-primary">
                   <Share2 className="h-6 w-6 text-[#0A1628]" />
                 </div>
                 <div>
@@ -108,7 +108,7 @@ export default function ShareSubscriptionPage() {
               <div className="space-y-4">
                 {steps.map((step, index) => (
                   <div key={index} className="flex gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-primary font-bold text-[#0A1628]">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full gradient-primary font-bold text-[#0A1628]">
                       {step.number}
                     </div>
                     <div>
