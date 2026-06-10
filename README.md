@@ -143,58 +143,6 @@ Each table is designed to support auditing, admin control, and scalable business
 
 ---
 
-## 💰 Business Logic
-
-### Wallet System
-
-* Users start with zero balance
-* Wallet balance can be increased by:
-
-  * Admin-approved top-ups
-  * Earnings from shared subscriptions
-
-### Commission System
-
-```js
-admin_commission = transaction_amount * (commission_percentage / 100)
-owner_earning = transaction_amount - admin_commission
-```
-
-* Commission percentage is configurable from admin settings
-* Commission is applied to every subscription purchase
-
-### Subscription Access Rules
-
-* Access duration is calculated in 24-hour blocks
-* Minimum purchase duration: 1 day
-* No partial-day pricing
-
----
-
-## 🛡️ Security Considerations
-
-* Encrypted credentials storage
-* JWT token expiration (24 hours)
-* Role-based admin protection
-* Rate limiting on APIs
-* SQL injection prevention via Drizzle ORM
-
----
-
-## 🌱 Future Enhancements (V2)
-
-* Automated payment gateway integration
-* Subscription rating & review system
-* Referral & rewards program
-* Automated credential rotation
-* Mobile application
-* Multi-language support
-* Advanced analytics dashboard
-* Email/SMS notifications
-* Fraud detection system
-
----
-
 ## 📦 Deployment
 
 ### Frontend
